@@ -30,7 +30,13 @@ Default entry point:
 
 - Web UI: `http://localhost:3000/dashboard`
 
-Common verification commands:
+Preferred verification command:
+
+```bash
+npm run verify
+```
+
+Equivalent individual commands remain available:
 
 ```bash
 npm run typecheck
@@ -43,6 +49,8 @@ npm run build
 - Default feature branch prefix: `codex/`
 - Make sure you are not working directly on `main`
 - If your change maps to an issue, prefer an issue-shaped branch name such as `codex/ingestion-retries`
+- Keep one implementation slice per branch whenever possible
+- Rebase or merge the latest `main` before asking for review if your branch has drifted
 
 ## Pull Requests
 
@@ -58,6 +66,7 @@ If your change affects product behavior, update the following as needed:
 - `README.md`
 - Relevant API or environment variable documentation
 - Tests or examples
+- Backup or restore guidance if the change touches durability or recovery
 
 ## Coding Expectations
 

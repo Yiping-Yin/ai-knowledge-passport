@@ -7,12 +7,16 @@
     "packages/*"
   ],
   "scripts": {
+    "dev:web": "npm run dev -w @ai-knowledge-passport/web",
+    "dev:worker": "npm run worker -w @ai-knowledge-passport/web",
     "dev": "npm run dev -w @ai-knowledge-passport/web",
     "worker": "npm run worker -w @ai-knowledge-passport/web",
     "dev:all": "concurrently \"npm run dev -w @ai-knowledge-passport/web\" \"npm run worker -w @ai-knowledge-passport/web\"",
     "build": "npm run build -w @ai-knowledge-passport/web",
     "typecheck": "npm run typecheck -w @ai-knowledge-passport/shared && npm run typecheck -w @ai-knowledge-passport/web",
-    "test": "npm run test -w @ai-knowledge-passport/web"
+    "test": "npm run test -w @ai-knowledge-passport/web",
+    "verify": "npm run typecheck && npm run test && npm run build",
+    "ci:verify": "npm run verify"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
