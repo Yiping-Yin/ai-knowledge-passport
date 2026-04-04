@@ -4,7 +4,7 @@ import path from "node:path";
 
 import TurndownService from "turndown";
 import * as cheerio from "cheerio";
-import pdfParse from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 import type { AppContext } from "@/server/context";
 import { runCommand } from "@/server/utils/shell";
@@ -96,14 +96,16 @@ export async function normalizeSourceContent(
         };
       }
       const buffer = await fs.readFile(input.filePath);
-      const parsed = await pdfParse(buffer);
+      const parser = new PDFParse({ data: buffer });
+      const parsed = await parser.getText();
+      await parser.destroy();
       if (parsed.text.trim().length > 80) {
         const text = parsed.text.trim();
         return {
           text,
           metadata: {
             parser: "pdf_text",
-            pageCount: parsed.numpages,
+            pageCount: parsed.total,
             charCount: text.length
           }
         };
@@ -116,7 +118,7 @@ export async function normalizeSourceContent(
         text,
         metadata: {
           parser: "pdf_ocr",
-          pageCount: parsed.numpages,
+          pageCount: parsed.total,
           ocrImageCount: imagePaths.length,
           charCount: text.length
         }

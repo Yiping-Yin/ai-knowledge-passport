@@ -1,8 +1,12 @@
 declare module "pdf-parse" {
-  const pdfParse: (dataBuffer: Buffer) => Promise<{
-    text: string;
-    numpages: number;
-  }>;
+  export class PDFParse {
+    constructor(input: { data?: Buffer; url?: string });
+    getText(options?: unknown): Promise<{
+      text: string;
+      total: number;
+    }>;
+    destroy(): Promise<void>;
+  }
 
-  export default pdfParse;
+  export function getHeader(url: string, validate?: boolean): Promise<unknown>;
 }
