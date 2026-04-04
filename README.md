@@ -55,6 +55,14 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:all
 ```
 
+Available run modes:
+
+```bash
+npm run dev:web
+npm run dev:worker
+npm run dev:all
+```
+
 4. Open:
 
 - [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
@@ -72,13 +80,68 @@ Current variables in `apps/web/.env.example`:
 
 Without `OPENAI_API_KEY`, the project can still perform some local operations, but OCR, transcription, compilation, research Q&A, and passport generation will be limited.
 
+Recommended local defaults:
+
+- leave `AIKP_DATA_DIR` empty to use the repo-local `data/` directory
+- leave `AIKP_DATABASE_PATH` empty to use `data/knowledge-passport.sqlite`
+- keep `AIKP_INLINE_JOBS=true` for the simplest local development loop
+
+## Restore Workflow
+
+Backups are created from the Passport & Backup page and can now be restored into a clean target directory.
+
+Current restore behavior:
+
+- the archive is extracted into a separate directory instead of overwriting the live runtime
+- the restored SQLite file is checked against the stored SHA256 from the backup manifest
+- restored object files are unpacked under the same target directory
+
+Recommended restore workflow:
+
+1. create a backup from the running app
+2. use the restore form in Passport & Backup
+3. inspect the restored directory before pointing any runtime to it
+4. only switch runtime paths after verifying the restored data
+
+## Daily Workflow
+
+The intended contributor loop is:
+
+```bash
+npm install
+cp apps/web/.env.example apps/web/.env.local
+npm run dev:all
+npm run verify
+```
+
+If you only need one part of the app:
+
+- use `npm run dev:web` for the UI
+- use `npm run dev:worker` for the queue worker
+- use `npm run verify` before opening a PR
+
 ## Validation
+
+```bash
+npm run verify
+```
+
+Equivalent individual commands:
 
 ```bash
 npm run typecheck
 npm run test
 npm run build
 ```
+
+## Repository Conventions
+
+- default feature branch prefix: `codex/`
+- preferred PR model: one feature slice per branch
+- CI uses `npm ci` and a single `ci:verify` entrypoint
+- Dependabot is enabled for npm dependency updates
+- editor defaults are defined in `.editorconfig`
+- Node version hint lives in `.nvmrc`
 
 ## Roadmap
 

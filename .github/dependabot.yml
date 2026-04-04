@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      frontend-runtime:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+      testing-and-tooling:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "typescript"
+          - "tsx"
+          - "@types/*"
