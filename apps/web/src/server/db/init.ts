@@ -2,6 +2,20 @@ import { getDatabase } from "./client";
 
 let initialized = false;
 
+function ensureColumn(
+  sqlite: ReturnType<typeof getDatabase>["sqlite"],
+  tableName: string,
+  columnName: string,
+  definition: string
+) {
+  const columns = sqlite.prepare(`pragma table_info(${tableName})`).all() as Array<{ name?: string }>;
+  if (columns.some((column) => column.name === columnName)) {
+    return;
+  }
+
+  sqlite.exec(`alter table ${tableName} add column ${definition}`);
+}
+
 export function initializeDatabase() {
   if (initialized) {
     return;
@@ -163,6 +177,8 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       title text not null,
       audience_label text not null,
       passport_id text references passport_snapshots(id) on delete set null,
+      description text not null default '',
+      purpose text not null default '',
       human_markdown text not null,
       machine_manifest_json text not null,
       include_node_ids_json text not null default '[]',
@@ -174,6 +190,34 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       status text not null,
       token_hash text not null,
       last_accessed_at text,
+      last_machine_accessed_at text,
+      access_count integer not null default 0,
+      max_access_count integer,
+      machine_download_count integer not null default 0,
+      max_machine_downloads integer,
+      created_at text not null,
+      updated_at text not null
+    );
+
+    create table if not exists visa_access_logs (
+      id text primary key,
+      visa_id text not null references visa_bundles(id) on delete cascade,
+      access_type text not null,
+      result text not null,
+      denial_reason text,
+      visitor_label text,
+      session_hash text,
+      user_agent text,
+      created_at text not null
+    );
+
+    create table if not exists visa_feedback_queue (
+      id text primary key,
+      visa_id text not null references visa_bundles(id) on delete cascade,
+      feedback_type text not null,
+      visitor_label text,
+      message text not null,
+      status text not null,
       created_at text not null,
       updated_at text not null
     );
@@ -279,5 +323,13 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       select id, title, summary, body_md from wiki_nodes;
     `);
   }
+
+  ensureColumn(sqlite, "visa_bundles", "description", "description text not null default ''");
+  ensureColumn(sqlite, "visa_bundles", "purpose", "purpose text not null default ''");
+  ensureColumn(sqlite, "visa_bundles", "last_machine_accessed_at", "last_machine_accessed_at text");
+  ensureColumn(sqlite, "visa_bundles", "access_count", "access_count integer not null default 0");
+  ensureColumn(sqlite, "visa_bundles", "max_access_count", "max_access_count integer");
+  ensureColumn(sqlite, "visa_bundles", "machine_download_count", "machine_download_count integer not null default 0");
+  ensureColumn(sqlite, "visa_bundles", "max_machine_downloads", "max_machine_downloads integer");
 
 }

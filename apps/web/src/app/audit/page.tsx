@@ -13,7 +13,9 @@ const filterLinks = [
   { label: "Warnings", href: "/audit?result=warning" },
   { label: "Source Events", href: "/audit?objectType=source" },
   { label: "Node Events", href: "/audit?objectType=wiki_node" },
-  { label: "Research Events", href: "/audit?objectType=research_session" }
+  { label: "Research Events", href: "/audit?objectType=research_session" },
+  { label: "Visa Events", href: "/audit?objectType=visa_bundle" },
+  { label: "Visa Feedback", href: "/audit?objectType=visa_feedback" }
 ];
 
 export default async function AuditPage(props: {
@@ -36,7 +38,7 @@ export default async function AuditPage(props: {
   ]);
 
   return (
-    <PageShell currentPath="/audit" title="Audit Log" subtitle="Inspect the event history for imports, compilation, review, research, exports, and restore operations">
+    <PageShell currentPath="/audit" title="Audit Log" subtitle="Inspect the event history for imports, compilation, sharing, review, research, exports, and restore operations">
       <section className="grid gap-4 md:grid-cols-4">
         <StatTile label="Total Events" value={summary.total} />
         <StatTile label="Failed Events" value={summary.failed} />

@@ -26,6 +26,9 @@ export function VisaActions(props: {
       >
         Copy Link
       </button>
+      <a className="rounded-full border border-[var(--line)] px-4 py-2" href={`/visas/${props.visaId}`}>
+        Details
+      </a>
       <a className="rounded-full border border-[var(--line)] px-4 py-2" href={props.secretPath} target="_blank" rel="noreferrer">
         Open Link
       </a>

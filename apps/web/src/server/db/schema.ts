@@ -155,6 +155,8 @@ export const visaBundles = sqliteTable("visa_bundles", {
   title: text("title").notNull(),
   audienceLabel: text("audience_label").notNull(),
   passportId: text("passport_id").references(() => passportSnapshots.id, { onDelete: "set null" }),
+  description: text("description").notNull().default(""),
+  purpose: text("purpose").notNull().default(""),
   humanMarkdown: text("human_markdown").notNull(),
   machineManifestJson: text("machine_manifest_json").notNull(),
   includeNodeIdsJson: text("include_node_ids_json").notNull().default("[]"),
@@ -166,6 +168,34 @@ export const visaBundles = sqliteTable("visa_bundles", {
   status: text("status").notNull(),
   tokenHash: text("token_hash").notNull(),
   lastAccessedAt: text("last_accessed_at"),
+  lastMachineAccessedAt: text("last_machine_accessed_at"),
+  accessCount: integer("access_count").notNull().default(0),
+  maxAccessCount: integer("max_access_count"),
+  machineDownloadCount: integer("machine_download_count").notNull().default(0),
+  maxMachineDownloads: integer("max_machine_downloads"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const visaAccessLogs = sqliteTable("visa_access_logs", {
+  id: text("id").primaryKey(),
+  visaId: text("visa_id").notNull().references(() => visaBundles.id, { onDelete: "cascade" }),
+  accessType: text("access_type").notNull(),
+  result: text("result").notNull(),
+  denialReason: text("denial_reason"),
+  visitorLabel: text("visitor_label"),
+  sessionHash: text("session_hash"),
+  userAgent: text("user_agent"),
+  createdAt: text("created_at").notNull()
+});
+
+export const visaFeedbackQueue = sqliteTable("visa_feedback_queue", {
+  id: text("id").primaryKey(),
+  visaId: text("visa_id").notNull().references(() => visaBundles.id, { onDelete: "cascade" }),
+  feedbackType: text("feedback_type").notNull(),
+  visitorLabel: text("visitor_label"),
+  message: text("message").notNull(),
+  status: text("status").notNull(),
   createdAt: text("created_at").notNull(),
   updatedAt: text("updated_at").notNull()
 });

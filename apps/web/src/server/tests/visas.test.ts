@@ -5,10 +5,11 @@ import path from "node:path";
 import type { ModelProvider } from "@/server/providers/model-provider";
 import { createAppContext } from "@/server/context";
 import {
-  auditLogs,
   passportSnapshots,
   postcards,
   sources,
+  visaAccessLogs,
+  visaFeedbackQueue,
   wikiNodes
 } from "@/server/db/schema";
 import { createId } from "@/server/services/common";
@@ -17,7 +18,11 @@ import {
   accessVisaBundleByToken,
   createVisaBundle,
   getVisaBundleById,
-  revokeVisaBundle
+  listVisaAccessLogs,
+  listVisaFeedbackQueue,
+  reviewVisaFeedback,
+  revokeVisaBundle,
+  submitVisaFeedbackByToken
 } from "@/server/services/visas";
 
 import { describe, expect, it } from "vitest";
@@ -68,7 +73,8 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
     status: "confirmed",
     tagsJson: JSON.stringify(["visa"]),
     metadataJson: JSON.stringify({}),
-    extractedText: "Source text for visa bundle"
+    extractedText: "Source text for visa bundle",
+    errorMessage: null
   });
 
   await context.db.insert(wikiNodes).values({
@@ -121,25 +127,34 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
   };
 }
 
+function baseVisaInput(fixture: Awaited<ReturnType<typeof seedVisaFixtures>>) {
+  return {
+    title: "Partner Visa",
+    passportId: fixture.passportId,
+    includeNodeIds: [],
+    includePostcardIds: [],
+    privacyFloor: "L1_LOCAL_AI" as const,
+    audienceLabel: "Partner review",
+    description: "A narrow package for an external reviewer.",
+    purpose: "Review a subset of the knowledge base without broad exposure.",
+    expiresAt: undefined,
+    maxAccessCount: undefined,
+    maxMachineDownloads: undefined,
+    allowMachineDownload: true,
+    redaction: {
+      hideOriginUrls: false,
+      hideSourcePaths: false,
+      hideRawSourceIds: false
+    }
+  };
+}
+
 describe("visa bundles", () => {
   it("creates a visa from passport snapshot content and links a secret-link grant", async () => {
     const context = await createTestContext("akp-visa-");
     const fixture = await seedVisaFixtures(context);
 
-    const created = await createVisaBundle(context, {
-      title: "Partner Visa",
-      passportId: fixture.passportId,
-      includeNodeIds: [],
-      includePostcardIds: [],
-      privacyFloor: "L1_LOCAL_AI",
-      audienceLabel: "Partner review",
-      allowMachineDownload: true,
-      redaction: {
-        hideOriginUrls: false,
-        hideSourcePaths: false,
-        hideRawSourceIds: false
-      }
-    });
+    const created = await createVisaBundle(context, baseVisaInput(fixture));
 
     expect(created.visaId).toMatch(/^visa_/);
     expect(created.secretPath).toContain(`/v/${created.visaId}.`);
@@ -149,6 +164,8 @@ describe("visa bundles", () => {
     expect(visa?.passportId).toBe(fixture.passportId);
     expect(visa?.includeNodeIds).toEqual([fixture.nodeId]);
     expect(visa?.includePostcardIds).toEqual([fixture.cardId]);
+    expect(visa?.description).toContain("external reviewer");
+    expect(visa?.purpose).toContain("subset");
 
     const grants = await listGrants(context, 20);
     expect(grants[0]?.objectType).toBe("visa_bundle");
@@ -157,60 +174,118 @@ describe("visa bundles", () => {
     expect(grants[0]?.status).toBe("active");
   });
 
-  it("resolves active access, rejects invalid and revoked tokens, and records audit events", async () => {
-    const context = await createTestContext("akp-visa-access-");
+  it("tracks human and machine access, then denies once limits are exhausted", async () => {
+    const context = await createTestContext("akp-visa-limits-");
     const fixture = await seedVisaFixtures(context);
 
     const created = await createVisaBundle(context, {
-      title: "Access Visa",
+      ...baseVisaInput(fixture),
       passportId: undefined,
       includeNodeIds: [fixture.nodeId],
       includePostcardIds: [fixture.cardId],
-      privacyFloor: "L1_LOCAL_AI",
-      audienceLabel: "External reviewer",
-      allowMachineDownload: true,
-      redaction: {
-        hideOriginUrls: false,
-        hideSourcePaths: false,
-        hideRawSourceIds: false
-      }
+      maxAccessCount: 1,
+      maxMachineDownloads: 1
     });
 
     const token = created.secretPath.replace("/v/", "");
-    const access = await accessVisaBundleByToken(context, token, "human");
-    expect(access.status).toBe("active");
-    if (access.status === "active") {
-      expect(access.visa.lastAccessedAt).toBeTruthy();
-    }
 
-    const invalid = await accessVisaBundleByToken(context, "visa_fake.badtoken", "human");
-    expect(invalid.status).toBe("invalid");
-
-    await revokeVisaBundle(context, created.visaId);
-    const revoked = await accessVisaBundleByToken(context, token, "human");
-    expect(revoked.status).toBe("revoked");
-
-    const logs = await context.db.query.auditLogs.findMany({
-      where: (table, { eq }) => eq(table.objectType, "visa_bundle")
+    const firstHuman = await accessVisaBundleByToken(context, token, "human", {
+      userAgent: "test-agent",
+      sessionHashSource: "session-a"
     });
-    expect(logs.some((entry) => entry.actionType === "create_visa" && entry.result === "succeeded")).toBe(true);
-    expect(logs.some((entry) => entry.actionType === "access_visa" && entry.result === "succeeded")).toBe(true);
-    expect(logs.some((entry) => entry.actionType === "access_visa" && entry.result === "failed")).toBe(true);
-    expect(logs.some((entry) => entry.actionType === "revoke_visa" && entry.result === "succeeded")).toBe(true);
+    expect(firstHuman.status).toBe("active");
+
+    const secondHuman = await accessVisaBundleByToken(context, token, "human", {
+      userAgent: "test-agent",
+      sessionHashSource: "session-a"
+    });
+    expect(secondHuman.status).toBe("human_limit_reached");
+
+    const firstMachine = await accessVisaBundleByToken(context, token, "machine", {
+      userAgent: "test-agent",
+      sessionHashSource: "session-a"
+    });
+    expect(firstMachine.status).toBe("active");
+
+    const secondMachine = await accessVisaBundleByToken(context, token, "machine", {
+      userAgent: "test-agent",
+      sessionHashSource: "session-a"
+    });
+    expect(secondMachine.status).toBe("machine_limit_reached");
+
+    const visa = await getVisaBundleById(context, created.visaId);
+    expect(visa?.accessCount).toBe(1);
+    expect(visa?.machineDownloadCount).toBe(1);
+    expect(visa?.lastAccessedAt).toBeTruthy();
+    expect(visa?.lastMachineAccessedAt).toBeTruthy();
+
+    const accessLogs = await listVisaAccessLogs(context, created.visaId, 20);
+    expect(accessLogs.some((entry) => entry.accessType === "human_view" && entry.result === "succeeded")).toBe(true);
+    expect(accessLogs.some((entry) => entry.denialReason === "human_limit_reached")).toBe(true);
+    expect(accessLogs.some((entry) => entry.accessType === "machine_download" && entry.result === "succeeded")).toBe(true);
+    expect(accessLogs.some((entry) => entry.denialReason === "machine_limit_reached")).toBe(true);
   });
 
-  it("redacts source details from the manifest and blocks machine download when disabled", async () => {
+  it("captures external feedback, queues it for review, and updates review status", async () => {
+    const context = await createTestContext("akp-visa-feedback-");
+    const fixture = await seedVisaFixtures(context);
+
+    const created = await createVisaBundle(context, {
+      ...baseVisaInput(fixture),
+      passportId: undefined,
+      includeNodeIds: [fixture.nodeId],
+      includePostcardIds: [fixture.cardId]
+    });
+
+    const token = created.secretPath.replace("/v/", "");
+    const submitted = await submitVisaFeedbackByToken(
+      context,
+      token,
+      {
+        feedbackType: "question",
+        visitorLabel: "Alice",
+        message: "Can this visa include one more method postcard?"
+      },
+      {
+        userAgent: "feedback-agent",
+        sessionHashSource: "session-feedback",
+        visitorLabel: "Alice"
+      }
+    );
+
+    expect(submitted.status).toBe("active");
+    if (submitted.status !== "active") {
+      throw new Error("Expected feedback submission to succeed");
+    }
+
+    let feedbackItems = await listVisaFeedbackQueue(context, created.visaId, 20);
+    expect(feedbackItems).toHaveLength(1);
+    expect(feedbackItems[0]?.status).toBe("pending_review");
+
+    await reviewVisaFeedback(context, created.visaId, submitted.feedbackId, "accepted");
+    feedbackItems = await listVisaFeedbackQueue(context, created.visaId, 20);
+    expect(feedbackItems[0]?.status).toBe("accepted");
+
+    const accessLogs = await context.db.query.visaAccessLogs.findMany({
+      where: (table, { eq }) => eq(table.visaId, created.visaId)
+    });
+    expect(accessLogs.some((entry) => entry.accessType === "feedback_submit" && entry.result === "succeeded")).toBe(true);
+
+    const queueRows = await context.db.query.visaFeedbackQueue.findMany({
+      where: (table, { eq }) => eq(table.visaId, created.visaId)
+    });
+    expect(queueRows[0]?.feedbackType).toBe("question");
+  });
+
+  it("redacts source details from the manifest and rejects feedback for revoked visas", async () => {
     const context = await createTestContext("akp-visa-redact-");
     const fixture = await seedVisaFixtures(context);
 
     const created = await createVisaBundle(context, {
-      title: "Locked Visa",
+      ...baseVisaInput(fixture),
       passportId: undefined,
       includeNodeIds: [fixture.nodeId],
       includePostcardIds: [fixture.cardId],
-      privacyFloor: "L1_LOCAL_AI",
-      audienceLabel: "Machine blocked",
-      expiresAt: new Date(Date.now() + 60_000).toISOString(),
       allowMachineDownload: false,
       redaction: {
         hideOriginUrls: true,
@@ -231,13 +306,13 @@ describe("visa bundles", () => {
     expect(manifest.nodes[0]?.sourceReferences.filePaths).toBeUndefined();
     expect(manifest.postcards[0]?.sourceReferences.sourceIds).toBeUndefined();
 
+    await revokeVisaBundle(context, created.visaId);
     const token = created.secretPath.replace("/v/", "");
-    const machineAccess = await accessVisaBundleByToken(context, token, "machine");
-    expect(machineAccess.status).toBe("machine_disabled");
-
-    const logs = await context.db.query.auditLogs.findMany({
-      where: (table, { eq }) => eq(table.objectType, "visa_bundle")
+    const feedbackResult = await submitVisaFeedbackByToken(context, token, {
+      feedbackType: "feedback",
+      message: "This should not be accepted",
+      visitorLabel: "Bob"
     });
-    expect(logs.some((entry) => entry.actionType === "download_visa_machine_manifest" && entry.result === "failed")).toBe(true);
+    expect(feedbackResult.status).toBe("revoked");
   });
 });

@@ -14,7 +14,7 @@ export default async function VisualsPage() {
         <StatTile label="Accepted Nodes" value={overview.summary.acceptedNodeCount} />
         <StatTile label="Postcards" value={overview.summary.postcardCount} />
         <StatTile label="Sources" value={overview.summary.sourceCount} />
-        <StatTile label="Theme Clusters" value={overview.summary.themeCount} />
+        <StatTile label="Theme Clusters" value={overview.summary.themeCount} hint={`visas ${overview.summary.visaCount} · active ${overview.summary.activeVisaCount}`} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -43,7 +43,7 @@ export default async function VisualsPage() {
               <article key={entry.level} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
                 <div className="flex items-center justify-between gap-3">
                   <StatusBadge>{entry.level}</StatusBadge>
-                  <span className="text-[var(--muted)]">sources {entry.sourceCount} · nodes {entry.nodeCount} · cards {entry.postcardCount}</span>
+                  <span className="text-[var(--muted)]">sources {entry.sourceCount} · nodes {entry.nodeCount} · cards {entry.postcardCount} · visas {entry.visaCount}</span>
                 </div>
               </article>
             ))}
@@ -97,6 +97,80 @@ export default async function VisualsPage() {
           </div>
         </SectionCard>
       </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SectionCard title="Active Visas by Privacy" description="How current outward circulation is distributed across privacy floors.">
+          <div className="space-y-3">
+            {overview.activeVisasByPrivacy.map((entry) => (
+              <article key={entry.level} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <StatusBadge>{entry.level}</StatusBadge>
+                  <span className="text-[var(--muted)]">active {entry.activeVisaCount} / total {entry.visaCount}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Visa Access Trends" description="Recent human views, machine downloads, and lightweight flowback submissions.">
+          <div className="space-y-3">
+            {overview.visaAccessTrends.map((entry) => (
+              <article key={entry.date} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium">{entry.date}</p>
+                  <span className="text-[var(--muted)]">
+                    human {entry.humanViews} · machine {entry.machineDownloads} · feedback {entry.feedbackSubmissions}
+                  </span>
+                </div>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SectionCard title="Top Circulated Passports" description="Passport snapshots most frequently projected into visas and accessed outward.">
+          <div className="space-y-3">
+            {overview.topCirculatedPassports.map((entry) => (
+              <article key={entry.passportId} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium">{entry.title}</p>
+                  <span className="text-[var(--muted)]">visas {entry.visaCount} · access {entry.accessCount}</span>
+                </div>
+              </article>
+            ))}
+            {overview.topCirculatedPassports.length === 0 ? <p className="text-sm text-[var(--muted)]">No passport circulation data yet.</p> : null}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Top Circulated Postcards" description="Postcards that are most frequently included in outward scenario bundles.">
+          <div className="space-y-3">
+            {overview.topCirculatedPostcards.map((entry) => (
+              <article key={entry.postcardId} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="font-medium">{entry.title}</p>
+                  <span className="text-[var(--muted)]">visas {entry.visaCount} · access {entry.accessCount}</span>
+                </div>
+              </article>
+            ))}
+            {overview.topCirculatedPostcards.length === 0 ? <p className="text-sm text-[var(--muted)]">No postcard circulation data yet.</p> : null}
+          </div>
+        </SectionCard>
+      </div>
+
+      <SectionCard title="Project Circulation" description="How shared visas and access events cluster back onto project scopes.">
+        <div className="space-y-3">
+          {overview.projectCirculation.map((entry) => (
+            <article key={entry.projectKey} className="rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-medium">{entry.projectKey}</p>
+                <span className="text-[var(--muted)]">visas {entry.visaCount} · access {entry.accessCount}</span>
+              </div>
+            </article>
+          ))}
+          {overview.projectCirculation.length === 0 ? <p className="text-sm text-[var(--muted)]">No project circulation data yet.</p> : null}
+        </div>
+      </SectionCard>
     </PageShell>
   );
 }

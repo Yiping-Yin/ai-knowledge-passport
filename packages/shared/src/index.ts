@@ -89,6 +89,29 @@ export const visaBundleStatuses = [
   "expired"
 ] as const;
 
+export const visaAccessTypes = [
+  "human_view",
+  "machine_download",
+  "feedback_submit"
+] as const;
+
+export const visaAccessResults = [
+  "succeeded",
+  "denied"
+] as const;
+
+export const visaFeedbackTypes = [
+  "question",
+  "feedback",
+  "collaboration_intent"
+] as const;
+
+export const visaFeedbackStatuses = [
+  "pending_review",
+  "accepted",
+  "ignored"
+] as const;
+
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
 export const sourceStatusSchema = z.enum(sourceStatuses);
@@ -101,6 +124,10 @@ export const postcardTypeSchema = z.enum(postcardTypes);
 export const outputTypeSchema = z.enum(outputTypes);
 export const citationKindSchema = z.enum(citationKinds);
 export const visaBundleStatusSchema = z.enum(visaBundleStatuses);
+export const visaAccessTypeSchema = z.enum(visaAccessTypes);
+export const visaAccessResultSchema = z.enum(visaAccessResults);
+export const visaFeedbackTypeSchema = z.enum(visaFeedbackTypes);
+export const visaFeedbackStatusSchema = z.enum(visaFeedbackStatuses);
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
@@ -167,13 +194,27 @@ export const visaBundleCreateSchema = z.object({
   includePostcardIds: z.array(z.string()).default([]),
   privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI"),
   audienceLabel: z.string().min(1).default("General audience"),
+  description: z.string().default(""),
+  purpose: z.string().default(""),
   expiresAt: z.string().datetime().optional(),
+  maxAccessCount: z.number().int().positive().optional(),
+  maxMachineDownloads: z.number().int().positive().optional(),
   allowMachineDownload: z.boolean().default(true),
   redaction: visaRedactionSchema.default({
     hideOriginUrls: false,
     hideSourcePaths: false,
     hideRawSourceIds: false
   })
+});
+
+export const visaFeedbackCreateSchema = z.object({
+  feedbackType: visaFeedbackTypeSchema.default("feedback"),
+  message: z.string().min(1).max(2000),
+  visitorLabel: z.string().max(120).optional()
+});
+
+export const visaFeedbackReviewSchema = z.object({
+  status: visaFeedbackStatusSchema
 });
 
 export const backupCreateSchema = z.object({
@@ -197,6 +238,10 @@ export type PostcardType = z.infer<typeof postcardTypeSchema>;
 export type OutputType = z.infer<typeof outputTypeSchema>;
 export type CitationKind = z.infer<typeof citationKindSchema>;
 export type VisaBundleStatus = z.infer<typeof visaBundleStatusSchema>;
+export type VisaAccessType = z.infer<typeof visaAccessTypeSchema>;
+export type VisaAccessResult = z.infer<typeof visaAccessResultSchema>;
+export type VisaFeedbackType = z.infer<typeof visaFeedbackTypeSchema>;
+export type VisaFeedbackStatus = z.infer<typeof visaFeedbackStatusSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
@@ -204,6 +249,8 @@ export type PostcardCreateInput = z.infer<typeof postcardCreateSchema>;
 export type PassportGenerateInput = z.infer<typeof passportGenerateSchema>;
 export type VisaRedactionConfig = z.infer<typeof visaRedactionSchema>;
 export type VisaBundleCreateInput = z.infer<typeof visaBundleCreateSchema>;
+export type VisaFeedbackCreateInput = z.infer<typeof visaFeedbackCreateSchema>;
+export type VisaFeedbackReviewInput = z.infer<typeof visaFeedbackReviewSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
 
@@ -212,6 +259,8 @@ export type VisaBundleSummary = {
   title: string;
   audienceLabel: string;
   passportId: string | null;
+  description: string;
+  purpose: string;
   includeNodeIds: string[];
   includePostcardIds: string[];
   privacyFloor: PrivacyLevel;
@@ -220,6 +269,12 @@ export type VisaBundleSummary = {
   expiresAt: string | null;
   status: VisaBundleStatus;
   lastAccessedAt: string | null;
+  lastMachineAccessedAt: string | null;
+  accessCount: number;
+  maxAccessCount: number | null;
+  machineDownloadCount: number;
+  maxMachineDownloads: number | null;
+  pendingFeedbackCount: number;
   createdAt: string;
   updatedAt: string;
   secretPath: string;
@@ -229,4 +284,27 @@ export type VisaBundleSummary = {
 export type VisaBundleSnapshot = VisaBundleSummary & {
   humanMarkdown: string;
   machineManifest: Record<string, unknown>;
+};
+
+export type VisaAccessLogEntry = {
+  id: string;
+  visaId: string;
+  accessType: VisaAccessType;
+  result: VisaAccessResult;
+  denialReason: string | null;
+  visitorLabel: string | null;
+  sessionHash: string | null;
+  userAgent: string | null;
+  createdAt: string;
+};
+
+export type VisaFeedbackQueueItem = {
+  id: string;
+  visaId: string;
+  feedbackType: VisaFeedbackType;
+  visitorLabel: string | null;
+  message: string;
+  status: VisaFeedbackStatus;
+  createdAt: string;
+  updatedAt: string;
 };
