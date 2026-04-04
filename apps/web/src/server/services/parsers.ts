@@ -11,6 +11,11 @@ import { runCommand } from "@/server/utils/shell";
 
 const turndown = new TurndownService();
 
+type NormalizedSourceResult = {
+  text: string;
+  metadata: Record<string, string | number | boolean | null>;
+};
+
 async function renderPdfToImages(filePath: string) {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "akp-pdf-"));
   const outputBase = path.join(tempDir, "page");
@@ -34,52 +39,138 @@ export async function normalizeSourceContent(
     textContent?: string | null;
     originUrl?: string | null;
   }
-) {
+): Promise<NormalizedSourceResult> {
   switch (input.type) {
     case "markdown":
     case "txt":
     case "chat":
-      return input.textContent?.trim() ?? "";
+      return {
+        text: input.textContent?.trim() ?? "",
+        metadata: {
+          parser: "inline_text",
+          charCount: input.textContent?.trim().length ?? 0,
+          wordCount: input.textContent?.trim().split(/\s+/).filter(Boolean).length ?? 0
+        }
+      };
     case "url": {
       if (!input.originUrl) {
-        return "";
+        return {
+          text: "",
+          metadata: {
+            parser: "url_fetch",
+            fetched: false
+          }
+        };
       }
       const response = await fetch(input.originUrl);
       const html = await response.text();
       const $ = cheerio.load(html);
+      const pageTitle = $("title").first().text().trim();
+      const description = $('meta[name="description"]').attr("content")?.trim() ?? null;
+      const author = $('meta[name="author"]').attr("content")?.trim() ?? null;
+      const htmlLang = $("html").attr("lang")?.trim() ?? null;
       $("script, style, noscript").remove();
       const markdown = turndown.turndown($("body").html() ?? "");
-      return markdown.trim();
+      const text = markdown.trim();
+      return {
+        text,
+        metadata: {
+          parser: "url_fetch",
+          fetched: true,
+          pageTitle,
+          description,
+          author,
+          htmlLang,
+          charCount: text.length
+        }
+      };
     }
     case "pdf": {
       if (!input.filePath) {
-        return "";
+        return {
+          text: "",
+          metadata: {
+            parser: "pdf",
+            extracted: false
+          }
+        };
       }
       const buffer = await fs.readFile(input.filePath);
       const parsed = await pdfParse(buffer);
       if (parsed.text.trim().length > 80) {
-        return parsed.text.trim();
+        const text = parsed.text.trim();
+        return {
+          text,
+          metadata: {
+            parser: "pdf_text",
+            pageCount: parsed.numpages,
+            charCount: text.length
+          }
+        };
       }
 
       const imagePaths = await renderPdfToImages(input.filePath);
       const ocrTexts = await Promise.all(imagePaths.map((imagePath) => ocrImageFile(imagePath)));
-      return ocrTexts.join("\n\n").trim();
+      const text = ocrTexts.join("\n\n").trim();
+      return {
+        text,
+        metadata: {
+          parser: "pdf_ocr",
+          pageCount: parsed.numpages,
+          ocrImageCount: imagePaths.length,
+          charCount: text.length
+        }
+      };
     }
     case "image": {
       if (!input.filePath) {
-        return "";
+        return {
+          text: "",
+          metadata: {
+            parser: "image_ocr",
+            extracted: false
+          }
+        };
       }
-      return ocrImageFile(input.filePath);
+      const text = await ocrImageFile(input.filePath);
+      return {
+        text,
+        metadata: {
+          parser: "image_ocr",
+          charCount: text.length,
+          wordCount: text.split(/\s+/).filter(Boolean).length
+        }
+      };
     }
     case "audio": {
       if (!input.filePath) {
-        return "";
+        return {
+          text: "",
+          metadata: {
+            parser: "audio_transcription",
+            extracted: false
+          }
+        };
       }
       const normalizedPath = `${input.filePath}.wav`;
       await runCommand("ffmpeg", ["-y", "-i", input.filePath, "-ac", "1", "-ar", "16000", normalizedPath]);
-      return context.provider.transcribeAudio({ filePath: normalizedPath, mimeType: "audio/wav" });
+      const text = await context.provider.transcribeAudio({ filePath: normalizedPath, mimeType: "audio/wav" });
+      return {
+        text,
+        metadata: {
+          parser: "audio_transcription",
+          normalizedAudioPath: normalizedPath,
+          charCount: text.length,
+          wordCount: text.split(/\s+/).filter(Boolean).length
+        }
+      };
     }
     default:
-      return "";
+      return {
+        text: "",
+        metadata: {
+          parser: "unknown"
+        }
+      };
   }
 }

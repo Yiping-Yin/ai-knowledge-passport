@@ -11,7 +11,7 @@ import { createOutput } from "@/server/services/outputs";
 import { createPassportSnapshot } from "@/server/services/passports";
 import { createPostcard } from "@/server/services/postcards";
 import { answerResearchQuery } from "@/server/services/research";
-import { createSourceImport, listSources } from "@/server/services/sources";
+import { createSourceImport, listSources, retrySourceProcessing } from "@/server/services/sources";
 import { syncWikiNodeFts } from "@/server/services/fts";
 import { createId } from "@/server/services/common";
 
@@ -193,7 +193,6 @@ describe("knowledge passport MVP flow", () => {
       databasePath: path.join(dataDir, "test.sqlite"),
       provider: new FakeProvider()
     });
-
     const existingNodeId = createId("node");
     await context.db.insert(wikiNodes).values({
       id: existingNodeId,
@@ -240,6 +239,39 @@ describe("knowledge passport MVP flow", () => {
 
     const sourceRows = await listSources(context);
     expect(sourceRows[0]?.status).toBe("confirmed");
+  });
+
+  it("marks failed ingestion attempts and allows retry", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-fail-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    const importResult = await createSourceImport(context, {
+      payload: {
+        type: "url",
+        title: "Broken URL",
+        originUrl: "https://127.0.0.1.invalid.example.localhost",
+        privacyLevel: "L1_LOCAL_AI",
+        tags: [],
+        metadata: {}
+      }
+    });
+
+    const afterFailure = await listSources(context);
+    expect(afterFailure[0]?.status).toBe("failed");
+    expect(afterFailure[0]?.errorMessage).toBeTruthy();
+    expect(afterFailure[0]?.latestJob?.status).toBe("failed");
+
+    const retryResult = await retrySourceProcessing(context, importResult.sourceId);
+    expect(retryResult.jobId).toMatch(/^job_/);
   });
 
   it("merges pending nodes into an existing target and redirects edges", async () => {
