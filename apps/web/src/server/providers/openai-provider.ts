@@ -34,7 +34,7 @@ export class OpenAIProvider implements ModelProvider {
 
   private ensureClient() {
     if (!this.client) {
-      throw new Error("OPENAI_API_KEY is required for AI compile, research, audio transcription and passport generation.");
+      throw new Error("OPENAI_API_KEY is required for AI compile, research, avatar simulation, audio transcription and passport generation.");
     }
 
     return this.client;
@@ -261,6 +261,53 @@ export class OpenAIProvider implements ModelProvider {
       machineManifest: response.machineManifest && typeof response.machineManifest === "object"
         ? (response.machineManifest as Record<string, unknown>)
         : {}
+    };
+  }
+
+  async generateAvatarReply(input: {
+    avatarTitle: string;
+    intro: string;
+    toneRules: string[];
+    question: string;
+    evidence: Array<{ refId: string; title: string; text: string }>;
+  }) {
+    const response = await this.jsonResponse<{
+      answerMd?: unknown;
+      citations?: unknown;
+    }>(
+      "You are simulating a governed digital avatar. Answer only from the supplied evidence, keep the response aligned with the avatar intro and tone rules, and do not invent claims beyond the evidence. Return markdown in answerMd and a citations array with refId, kind, excerpt, score. Use kind wiki_node for all citations.",
+      input
+    );
+
+    const citations = Array.isArray(response.citations)
+      ? response.citations.flatMap((entry) => {
+          if (!entry || typeof entry !== "object") {
+            return [];
+          }
+
+          const candidate = entry as Record<string, unknown>;
+          const refId = typeof candidate.refId === "string" ? candidate.refId : "";
+          const excerpt = typeof candidate.excerpt === "string" ? candidate.excerpt : "";
+          const score = typeof candidate.score === "number" ? candidate.score : 0.5;
+
+          if (!refId || !excerpt) {
+            return [];
+          }
+
+          return [
+            {
+              refId,
+              kind: "wiki_node",
+              excerpt,
+              score
+            } satisfies ProviderCitation
+          ];
+        })
+      : [];
+
+    return {
+      answerMd: typeof response.answerMd === "string" ? response.answerMd.trim() : "",
+      citations
     };
   }
 }

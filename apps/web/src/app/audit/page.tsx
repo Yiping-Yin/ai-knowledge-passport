@@ -15,7 +15,10 @@ const filterLinks = [
   { label: "Node Events", href: "/audit?objectType=wiki_node" },
   { label: "Research Events", href: "/audit?objectType=research_session" },
   { label: "Visa Events", href: "/audit?objectType=visa_bundle" },
-  { label: "Visa Feedback", href: "/audit?objectType=visa_feedback" }
+  { label: "Visa Feedback", href: "/audit?objectType=visa_feedback" },
+  { label: "Avatar Profiles", href: "/audit?objectType=avatar_profile" },
+  { label: "Avatar Sessions", href: "/audit?objectType=avatar_simulation_session" },
+  { label: "Agent Packs", href: "/audit?objectType=agent_pack_snapshot" }
 ];
 
 export default async function AuditPage(props: {
