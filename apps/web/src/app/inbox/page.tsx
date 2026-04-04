@@ -3,8 +3,10 @@ export const dynamic = "force-dynamic";
 import { CompileButton } from "@/components/compile-button";
 import { ImportForm } from "@/components/import-form";
 import { PageShell } from "@/components/page-shell";
+import { RetryButton } from "@/components/retry-button";
 import { SectionCard, StatusBadge } from "@/components/ui";
 import { getAppContext } from "@/server/context";
+import { parseJsonObject } from "@/server/services/common";
 import { listSources } from "@/server/services/sources";
 
 export default async function InboxPage() {
@@ -20,6 +22,14 @@ export default async function InboxPage() {
           <div className="space-y-4">
             {sources.map((source) => (
               <article key={source.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
+                {(() => {
+                  const metadata = parseJsonObject<Record<string, unknown>>(source.metadataJson, {});
+                  const normalization = metadata.normalization && typeof metadata.normalization === "object"
+                    ? (metadata.normalization as Record<string, unknown>)
+                    : null;
+
+                  return (
+                    <>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold">{source.title}</p>
@@ -35,10 +45,35 @@ export default async function InboxPage() {
                   隐私：{source.privacyLevel}
                   {source.projectKey ? ` · 项目：${source.projectKey}` : ""}
                 </p>
+                {normalization ? (
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    解析：{String(normalization.parser ?? "unknown")}
+                    {typeof normalization.charCount === "number" ? ` · ${normalization.charCount} chars` : ""}
+                    {typeof normalization.wordCount === "number" ? ` · ${normalization.wordCount} words` : ""}
+                    {typeof normalization.pageCount === "number" ? ` · ${normalization.pageCount} pages` : ""}
+                  </p>
+                ) : null}
+                {source.latestJob ? (
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    最新任务：{source.latestJob.jobType} · {source.latestJob.status}
+                    {source.latestJob.errorMessage ? ` · ${source.latestJob.errorMessage}` : ""}
+                  </p>
+                ) : null}
+                {source.errorMessage ? (
+                  <div className="mt-3 rounded-2xl bg-[var(--warn-soft)] px-4 py-3 text-sm text-[var(--warn)]">
+                    {source.errorMessage}
+                  </div>
+                ) : null}
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <p className="line-clamp-2 text-sm leading-6 text-[var(--muted)]">{source.extractedText || source.originUrl || "待解析原文"}</p>
-                  <CompileButton sourceId={source.id} />
+                  <div className="flex items-center gap-2">
+                    <CompileButton sourceId={source.id} />
+                    {source.status === "failed" ? <RetryButton sourceId={source.id} /> : null}
+                  </div>
                 </div>
+                    </>
+                  );
+                })()}
               </article>
             ))}
             {sources.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有任何 source。</p> : null}
