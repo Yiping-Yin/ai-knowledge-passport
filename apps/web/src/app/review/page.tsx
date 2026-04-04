@@ -8,11 +8,20 @@ import { listKnowledgeNodes } from "@/server/services/compiler";
 import { submitReviewAction } from "./actions";
 
 export default async function ReviewPage() {
-  const nodes = await listKnowledgeNodes(getAppContext(), "pending_review");
+  const context = getAppContext();
+  const nodes = await listKnowledgeNodes(context, "pending_review");
+  const acceptedNodes = await listKnowledgeNodes(context, "accepted");
 
   return (
     <PageShell currentPath="/review" title="Review Queue" subtitle="人工裁决编译结果，再进入正式知识层">
       <SectionCard title="待审阅节点" description="支持 accept、reject、rewrite、merge 四类裁决。">
+        <datalist id="merge-targets">
+          {acceptedNodes.map((acceptedNode) => (
+            <option key={acceptedNode.id} value={acceptedNode.id}>
+              {acceptedNode.title}
+            </option>
+          ))}
+        </datalist>
         <div className="space-y-4">
           {nodes.map((node) => (
             <article key={node.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-5">
@@ -34,7 +43,7 @@ export default async function ReviewPage() {
                   <option value="merge">merge</option>
                 </select>
                 <div className="space-y-2">
-                  <input name="mergedIntoNodeId" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm" placeholder="merge 目标 node id" />
+                  <input name="mergedIntoNodeId" list="merge-targets" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm" placeholder="merge 目标 node id" />
                   <button className="w-full rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white">提交裁决</button>
                 </div>
               </form>
