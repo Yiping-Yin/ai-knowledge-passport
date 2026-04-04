@@ -3,7 +3,7 @@ import { desc, eq, inArray } from "drizzle-orm";
 import type { ImportPayload } from "@ai-knowledge-passport/shared";
 
 import type { AppContext } from "@/server/context";
-import { sourceAssets, sourceFragments, sources } from "@/server/db/schema";
+import { jobs, sourceAssets, sourceFragments, sources } from "@/server/db/schema";
 import { chunkText, estimateTokens, stripMarkdown } from "@/server/utils/text";
 
 import { writeAuditLog } from "./audit";
@@ -141,14 +141,14 @@ export async function normalizeSource(context: AppContext, sourceId: string) {
   const metadata = parseJsonObject<Record<string, unknown>>(source.metadataJson, {});
   const textContent = typeof metadata.textContent === "string" ? metadata.textContent : undefined;
 
-  const extractedText = await normalizeSourceContent(context, {
+  const normalization = await normalizeSourceContent(context, {
     type: source.type as ImportPayload["type"],
     filePath: source.filePath,
     originUrl: source.originUrl,
     textContent
   });
 
-  const normalizedText = stripMarkdown(extractedText);
+  const normalizedText = stripMarkdown(normalization.text);
   const fragments = chunkText(normalizedText);
   const embeddings = context.provider.isConfigured && fragments.length > 0
     ? await context.provider.embedText(fragments)
@@ -182,7 +182,11 @@ export async function normalizeSource(context: AppContext, sourceId: string) {
     .set({
       extractedText: normalizedText,
       status: "ready_for_compile",
-      errorMessage: null
+      errorMessage: null,
+      metadataJson: JSON.stringify({
+        ...metadata,
+        normalization: normalization.metadata
+      })
     })
     .where(eq(sources.id, sourceId));
 
@@ -196,9 +200,21 @@ export async function normalizeSource(context: AppContext, sourceId: string) {
 }
 
 export async function listSources(context: AppContext) {
-  return context.db.query.sources.findMany({
+  const allSources = await context.db.query.sources.findMany({
     orderBy: [desc(sources.importedAt)]
   });
+  const sourceIds = allSources.map((source) => source.id);
+  const allJobs = sourceIds.length
+    ? await context.db.query.jobs.findMany({
+        where: inArray(jobs.sourceId, sourceIds),
+        orderBy: [desc(jobs.queuedAt)]
+      })
+    : [];
+
+  return allSources.map((source) => ({
+    ...source,
+    latestJob: allJobs.find((job) => job.sourceId === source.id) ?? null
+  }));
 }
 
 export async function getSourceDetails(context: AppContext, sourceId: string) {
@@ -208,10 +224,15 @@ export async function getSourceDetails(context: AppContext, sourceId: string) {
   const fragments = await context.db.query.sourceFragments.findMany({
     where: eq(sourceFragments.sourceId, sourceId)
   });
+  const sourceJobs = await context.db.query.jobs.findMany({
+    where: eq(jobs.sourceId, sourceId),
+    orderBy: [desc(jobs.queuedAt)]
+  });
 
   return {
     source,
-    fragments
+    fragments,
+    jobs: sourceJobs
   };
 }
 
@@ -222,4 +243,52 @@ export async function listSourcesByIds(context: AppContext, sourceIds: string[])
   return context.db.query.sources.findMany({
     where: inArray(sources.id, sourceIds)
   });
+}
+
+export async function retrySourceProcessing(context: AppContext, sourceId: string) {
+  const source = await context.db.query.sources.findFirst({
+    where: eq(sources.id, sourceId)
+  });
+
+  if (!source) {
+    throw new Error(`Source ${sourceId} not found`);
+  }
+
+  const latestJob = await context.db.query.jobs.findFirst({
+    where: eq(jobs.sourceId, sourceId),
+    orderBy: [desc(jobs.queuedAt)]
+  });
+
+  const jobType = latestJob?.jobType === "compile_source" || Boolean(source.extractedText)
+    ? "compile_source"
+    : "normalize_source";
+
+  await context.db
+    .update(sources)
+    .set({
+      status: jobType === "compile_source" ? "ready_for_compile" : "pending_ingest",
+      errorMessage: null
+    })
+    .where(eq(sources.id, sourceId));
+
+  const jobId = await enqueueJob(context, {
+    jobType,
+    sourceId
+  });
+
+  const auditId = await writeAuditLog(context, {
+    actionType: "retry_source",
+    objectType: "source",
+    objectId: sourceId,
+    result: "queued",
+    notes: `job:${jobId}`
+  });
+
+  await maybeRunInlineJobs(context);
+
+  return {
+    sourceId,
+    jobId,
+    auditId
+  };
 }
