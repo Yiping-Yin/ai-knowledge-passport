@@ -5,6 +5,7 @@ import { nodeReviews, sourceFragments, sources, wikiEdges, wikiNodes } from "@/s
 import { cosineSimilarity } from "@/server/utils/text";
 
 import { writeAuditLog } from "./audit";
+import { createClaim } from "./claims";
 import { completeCompilationRun, createCompilationRun } from "./compilation-runs";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { deleteWikiNodeFts, syncWikiNodeFts } from "./fts";
@@ -323,6 +324,18 @@ export async function compileSource(context: AppContext, sourceId: string) {
         }))
         .sort((left, right) => right.score - left.score)
         .slice(0, 2);
+
+      await createClaim(context, {
+        claimType: "summary_claim",
+        title: dbNode.title,
+        statement: dbNode.summary,
+        confidence: strongest[0]?.score ?? 0,
+        sourceFragmentIds: strongest.map((entry) => entry.fragmentId),
+        sourceIds: parseJsonArray<string>(dbNode.sourceIdsJson),
+        nodeId: dbNode.id,
+        projectKey: dbNode.projectKey,
+        tags: parseJsonArray<string>(dbNode.tagsJson)
+      });
 
       for (const relation of strongest) {
         await context.db.insert(nodeReviews).values({

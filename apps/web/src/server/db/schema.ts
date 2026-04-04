@@ -46,6 +46,22 @@ export const sourceFragments = sqliteTable("source_fragments", {
   createdAt: text("created_at").notNull()
 });
 
+export const claims = sqliteTable("claims", {
+  id: text("id").primaryKey(),
+  claimType: text("claim_type").notNull(),
+  title: text("title").notNull(),
+  statement: text("statement").notNull(),
+  status: text("status").notNull(),
+  confidence: real("confidence").notNull().default(0),
+  sourceFragmentIdsJson: text("source_fragment_ids_json").notNull().default("[]"),
+  sourceIdsJson: text("source_ids_json").notNull().default("[]"),
+  nodeId: text("node_id").references(() => wikiNodes.id, { onDelete: "set null" }),
+  projectKey: text("project_key"),
+  tagsJson: text("tags_json").notNull().default("[]"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const jobs = sqliteTable("jobs", {
   id: text("id").primaryKey(),
   jobType: text("job_type").notNull(),
