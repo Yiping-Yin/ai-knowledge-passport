@@ -32,7 +32,7 @@ export function ResearchForm() {
             });
             const payload = await response.json();
             if (!response.ok) {
-              setError(payload.error ?? "研究查询失败");
+              setError(payload.error ?? "Research query failed");
               return;
             }
             setResult(payload);
@@ -40,15 +40,15 @@ export function ResearchForm() {
         }}
       >
         <label className="space-y-2 text-sm">
-          <span>问题</span>
-          <textarea name="question" rows={5} required className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="比较我导入的资料里，对‘知识护照’与‘数字分身’的关系是如何描述的？" />
+          <span>Question</span>
+          <textarea name="question" rows={5} required className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Compare how my imported materials describe the relationship between knowledge passports and digital twins." />
         </label>
         <label className="space-y-2 text-sm">
-          <span>项目范围</span>
-          <input name="projectKey" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="可选" />
+          <span>Project Scope</span>
+          <input name="projectKey" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Optional" />
         </label>
         <button disabled={isPending} className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white disabled:opacity-50">
-          {isPending ? "检索与推理中..." : "发起研究问答"}
+          {isPending ? "Retrieving and reasoning..." : "Run Research Query"}
         </button>
       </form>
 

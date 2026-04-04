@@ -6,6 +6,23 @@ import { cosineSimilarity } from "@/server/utils/text";
 
 import { parseJsonArray } from "./common";
 
+function tokenizeFtsQuery(query: string) {
+  return query
+    .toLowerCase()
+    .split(/[\s,.;:!?()[\]{}"'"'"'，。；：！？、]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+}
+
+function buildFtsQuery(query: string) {
+  const tokens = tokenizeFtsQuery(query);
+  if (!tokens.length) {
+    return "";
+  }
+
+  return tokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(" OR ");
+}
+
 export async function searchKnowledge(
   context: AppContext,
   query: {
@@ -15,6 +32,7 @@ export async function searchKnowledge(
   }
 ) {
   const limit = query.limit ?? 8;
+  const ftsQuery = buildFtsQuery(query.q);
   const fragmentRows = context.sqlite
     .prepare(
       `
@@ -23,8 +41,7 @@ export async function searchKnowledge(
       where source_fragments_fts match ?
       limit ?
     `
-    )
-    .all(query.q, limit * 2) as Array<{ id: string; sourceId: string; text: string }>;
+    );
 
   const nodeRows = context.sqlite
     .prepare(
@@ -34,17 +51,24 @@ export async function searchKnowledge(
       where wiki_nodes_fts match ?
       limit ?
     `
-    )
-    .all(query.q, limit * 2) as Array<{ id: string; title: string; summary: string; body: string }>;
+    );
 
-  const fallbackFragments = fragmentRows.length === 0
+  const fragmentRowResults = ftsQuery
+    ? (fragmentRows.all(ftsQuery, limit * 2) as Array<{ id: string; sourceId: string; text: string }>)
+    : [];
+
+  const nodeRowResults = ftsQuery
+    ? (nodeRows.all(ftsQuery, limit * 2) as Array<{ id: string; title: string; summary: string; body: string }>)
+    : [];
+
+  const fallbackFragments = fragmentRowResults.length === 0
     ? await context.db.query.sourceFragments.findMany({
         orderBy: [desc(sourceFragments.createdAt)],
         limit: limit * 2
       })
     : [];
 
-  const fallbackNodes = nodeRows.length === 0
+  const fallbackNodes = nodeRowResults.length === 0
     ? await context.db.query.wikiNodes.findMany({
         where: eq(wikiNodes.status, "accepted"),
         orderBy: [desc(wikiNodes.updatedAt)],
@@ -54,8 +78,8 @@ export async function searchKnowledge(
 
   if (!context.provider.isConfigured) {
     return {
-      fragments: (fragmentRows.length
-        ? fragmentRows
+      fragments: (fragmentRowResults.length
+        ? fragmentRowResults
         : fallbackFragments.map((entry) => ({
             id: entry.id,
             sourceId: entry.sourceId,
@@ -64,8 +88,8 @@ export async function searchKnowledge(
         ...entry,
         score: 0.5
       })),
-      nodes: (nodeRows.length
-        ? nodeRows
+      nodes: (nodeRowResults.length
+        ? nodeRowResults
         : fallbackNodes.map((entry) => ({
             id: entry.id,
             title: entry.title,
@@ -83,14 +107,14 @@ export async function searchKnowledge(
   const fragmentDetails = await context.db.query.sourceFragments.findMany({
     where: inArray(
       sourceFragments.id,
-      (fragmentRows.length ? fragmentRows : fallbackFragments).map((row) => row.id)
+      (fragmentRowResults.length ? fragmentRowResults : fallbackFragments).map((row) => row.id)
     )
   });
 
   const nodeDetails = await context.db.query.wikiNodes.findMany({
     where: inArray(
       wikiNodes.id,
-      (nodeRows.length ? nodeRows : fallbackNodes).map((row) => row.id)
+      (nodeRowResults.length ? nodeRowResults : fallbackNodes).map((row) => row.id)
     ),
     orderBy: [desc(wikiNodes.updatedAt)]
   });

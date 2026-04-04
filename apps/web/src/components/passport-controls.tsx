@@ -35,17 +35,17 @@ export function PassportControls() {
               })
             });
             const payload = await response.json();
-            setPassportMessage(response.ok ? `已入队：${payload.jobId}` : payload.error ?? "生成失败");
+            setPassportMessage(response.ok ? `Queued: ${payload.jobId}` : payload.error ?? "Generation failed");
           });
         }}
       >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm">
-            <span>护照标题</span>
-            <input name="title" defaultValue="知识护照" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+            <span>Passport Title</span>
+            <input name="title" defaultValue="Knowledge Passport" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
           </label>
           <label className="space-y-2 text-sm">
-            <span>最低权限层级</span>
+            <span>Minimum Privacy Floor</span>
             <select name="privacyFloor" defaultValue="L1_LOCAL_AI" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
               <option value="L1_LOCAL_AI">L1_LOCAL_AI</option>
               <option value="L0_SELF">L0_SELF</option>
@@ -56,23 +56,23 @@ export function PassportControls() {
           </label>
         </div>
         <label className="space-y-2 text-sm">
-          <span>包含 Node IDs</span>
-          <input name="includeNodeIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="留空则自动包含全部 accepted node" />
+          <span>Included Node IDs</span>
+          <input name="includeNodeIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Leave empty to include all accepted nodes" />
         </label>
         <label className="space-y-2 text-sm">
-          <span>包含 Postcard IDs</span>
-          <input name="includePostcardIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="留空则自动包含全部 postcard" />
+          <span>Included Postcard IDs</span>
+          <input name="includePostcardIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="Leave empty to include all postcards" />
         </label>
         <div className="flex items-center gap-4">
           <button disabled={isPassportPending} className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white disabled:opacity-50">
-            {isPassportPending ? "生成中..." : "生成护照"}
+            {isPassportPending ? "Generating..." : "Generate Passport"}
           </button>
           {passportMessage ? <span className="text-sm text-[var(--muted)]">{passportMessage}</span> : null}
         </div>
       </form>
 
       <div className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
-        <p className="text-sm leading-6 text-[var(--muted)]">备份包会同时打入 SQLite 数据库、本地对象存储和 manifest。</p>
+        <p className="text-sm leading-6 text-[var(--muted)]">The backup bundle includes the SQLite database, local object storage, and a manifest.</p>
         <button
           disabled={isBackupPending}
           className="mt-4 rounded-full border border-[var(--line)] px-5 py-3 text-sm font-medium disabled:opacity-50"
@@ -88,11 +88,11 @@ export function PassportControls() {
                 })
               });
               const payload = await response.json();
-              setBackupMessage(response.ok ? `已入队：${payload.jobId}` : payload.error ?? "备份失败");
+              setBackupMessage(response.ok ? `Queued: ${payload.jobId}` : payload.error ?? "Backup failed");
             });
           }}
         >
-          {isBackupPending ? "备份中..." : "执行本地备份"}
+          {isBackupPending ? "Backing up..." : "Run Local Backup"}
         </button>
         {backupMessage ? <p className="mt-3 text-sm text-[var(--muted)]">{backupMessage}</p> : null}
       </div>

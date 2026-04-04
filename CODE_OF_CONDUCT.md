@@ -1,39 +1,39 @@
 # Code of Conduct
 
-本项目希望成为一个对研究者、开发者、写作者和长期学习者都安全、有效、可协作的开源空间。
+This project aims to be an open-source space that is safe, effective, and collaborative for researchers, developers, writers, and long-term learners.
 
 ## Expected Behavior
 
-参与讨论与协作时，请：
+When participating in discussion and collaboration, please:
 
-- 尊重不同背景、经验和表达方式
-- 以问题和证据为中心，而不是做人身攻击
-- 对产品、代码和文档给出具体、可执行的反馈
-- 在争议场景下优先澄清事实、约束和目标
+- Respect different backgrounds, experience levels, and communication styles
+- Focus on problems and evidence instead of personal attacks
+- Give product, code, and documentation feedback that is specific and actionable
+- In contentious situations, clarify facts, constraints, and goals first
 
 ## Unacceptable Behavior
 
-以下行为不被接受：
+The following behavior is not acceptable:
 
-- 侮辱、羞辱、威胁或骚扰他人
-- 歧视性言论
-- 恶意刷屏、挑衅或破坏讨论秩序
-- 在未征得同意的情况下公开他人隐私信息
-- 明知会伤害项目协作环境的行为
+- Insulting, shaming, threatening, or harassing other people
+- Discriminatory language
+- Spam, trolling, or deliberate disruption of discussion
+- Sharing someone else’s private information without consent
+- Behavior that knowingly damages the project’s collaborative environment
 
 ## Enforcement
 
-维护者可对不当行为采取以下措施：
+Maintainers may respond to unacceptable behavior by:
 
-- 要求修正表达或停止相关行为
-- 锁定讨论
-- 关闭 issue / PR
-- 临时或永久限制参与
+- Asking for changes in conduct or for the behavior to stop
+- Locking discussions
+- Closing issues or PRs
+- Temporarily or permanently restricting participation
 
 ## Reporting
 
-如果你需要报告行为问题，请不要在公开线程里升级冲突。优先通过私下渠道联系维护者，或在合适时请求维护者介入。
+If you need to report a conduct issue, do not escalate the conflict in a public thread. Prefer contacting a maintainer privately or asking for moderator intervention when appropriate.
 
 ## Project Standard
 
-这个准则的目标不是制造话术正确性，而是保证讨论质量、协作效率和参与安全。
+The purpose of this policy is not performative politeness. It exists to preserve discussion quality, collaboration efficiency, and participant safety.

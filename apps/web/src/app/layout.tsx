@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI个人知识护照系统",
-  description: "本地知识编译、能力投影与数字代理底座"
+  title: "AI Personal Knowledge Passport System",
+  description: "A local-first knowledge compiler, capability projection layer, and digital-agent foundation"
 };
 
 export default function RootLayout(props: Readonly<{ children: React.ReactNode }>) {

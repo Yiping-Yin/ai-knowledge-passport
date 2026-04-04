@@ -15,13 +15,13 @@ export default async function PassportPage() {
   const backups = await listBackups(context);
 
   return (
-    <PageShell currentPath="/passport" title="Passport & Backup" subtitle="生成简版知识护照，并把当前状态安全归档">
+    <PageShell currentPath="/passport" title="Passport & Backup" subtitle="Generate a lightweight knowledge passport and archive the current state safely">
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <SectionCard title="护照与备份控制" description="护照生成入队执行，备份会打包数据库、对象文件和 manifest。">
+        <SectionCard title="Passport and Backup Controls" description="Passport generation runs through the queue, and backups package the database, object files, and manifest.">
           <PassportControls />
         </SectionCard>
         <div className="space-y-6">
-          <SectionCard title="护照快照" description="人类版 Markdown 与机器版 manifest 同步存档。">
+          <SectionCard title="Passport Snapshots" description="Human-readable Markdown and machine-readable manifests are stored together.">
             <div className="space-y-4">
               {passports.map((passport) => (
                 <article key={passport.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -44,19 +44,19 @@ export default async function PassportPage() {
                   </div>
                   <div className="mt-4 flex flex-wrap gap-3 text-sm">
                     <a className="rounded-full border border-[var(--line)] px-4 py-2" href={`/api/passports/${passport.id}/human`}>
-                      下载 Human Markdown
+                      Download Human Markdown
                     </a>
                     <a className="rounded-full border border-[var(--line)] px-4 py-2" href={`/api/passports/${passport.id}/machine`}>
-                      下载 Machine Manifest
+                      Download Machine Manifest
                     </a>
                   </div>
                 </article>
               ))}
-              {passports.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有护照快照。</p> : null}
+              {passports.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no passport snapshots yet.</p> : null}
             </div>
           </SectionCard>
 
-          <SectionCard title="备份记录" description="Zip 包可用于完整恢复 SQLite 和对象目录。">
+          <SectionCard title="Backup History" description="Backup zip files can restore the SQLite database and object directory.">
             <div className="space-y-3">
               {backups.map((backup) => (
                 <article key={backup.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
@@ -64,7 +64,7 @@ export default async function PassportPage() {
                   <p className="mt-2 text-[var(--muted)]">{backup.note}</p>
                 </article>
               ))}
-              {backups.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有备份记录。</p> : null}
+              {backups.length === 0 ? <p className="text-sm text-[var(--muted)]">There is no backup history yet.</p> : null}
             </div>
           </SectionCard>
         </div>

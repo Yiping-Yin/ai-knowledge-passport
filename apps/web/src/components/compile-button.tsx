@@ -17,11 +17,11 @@ export function CompileButton(props: { sourceId: string }) {
               method: "POST"
             });
             const payload = await response.json();
-            setMessage(response.ok ? `job:${payload.jobId}` : payload.error ?? "编译失败");
+            setMessage(response.ok ? `job:${payload.jobId}` : payload.error ?? "Compile failed");
           });
         }}
       >
-        {isPending ? "编译中..." : "编译"}
+        {isPending ? "Compiling..." : "Compile"}
       </button>
       {message ? <span className="text-xs text-[var(--muted)]">{message}</span> : null}
     </div>

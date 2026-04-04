@@ -17,9 +17,9 @@ export default async function KnowledgePage(props: { searchParams?: Promise<Reco
   const selected = selectedId ? await getKnowledgeNode(context, selectedId) : null;
 
   return (
-    <PageShell currentPath="/knowledge" title="Knowledge" subtitle="已确认的本地 wiki、来源回链与节点关系">
+    <PageShell currentPath="/knowledge" title="Knowledge" subtitle="Confirmed local wiki nodes, source back-links, and graph relationships">
       <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <SectionCard title="Node 列表" description="这里只展示已 accepted 的正式知识节点。">
+        <SectionCard title="Node List" description="This view only shows accepted formal knowledge nodes.">
           <div className="space-y-3">
             {nodes.map((node) => (
               <Link key={node.id} href={`/knowledge?node=${node.id}`} className="block rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -30,11 +30,11 @@ export default async function KnowledgePage(props: { searchParams?: Promise<Reco
                 <p className="mt-2 line-clamp-3 text-sm leading-6 text-[var(--muted)]">{node.summary}</p>
               </Link>
             ))}
-            {nodes.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有 accepted 节点。</p> : null}
+            {nodes.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no accepted nodes yet.</p> : null}
           </div>
         </SectionCard>
 
-        <SectionCard title={selected?.node?.title ?? "节点详情"} description="正文、来源和边关系都在一个面板查看。">
+        <SectionCard title={selected?.node?.title ?? "Node Details"} description="Body content, sources, and graph edges are shown in one panel.">
           {selected?.node ? (
             <div className="space-y-6">
               <div className="flex flex-wrap items-center gap-2">
@@ -62,12 +62,12 @@ export default async function KnowledgePage(props: { searchParams?: Promise<Reco
                       {edge.fromNodeId} → {edge.toNodeId} · {edge.relationType} · weight {edge.weight}
                     </div>
                   ))}
-                  {selected.edges.length === 0 ? <p className="text-sm text-[var(--muted)]">暂无边关系。</p> : null}
+                  {selected.edges.length === 0 ? <p className="text-sm text-[var(--muted)]">No edge relationships yet.</p> : null}
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-[var(--muted)]">暂无节点。</p>
+            <p className="text-sm text-[var(--muted)]">No node selected.</p>
           )}
         </SectionCard>
       </div>

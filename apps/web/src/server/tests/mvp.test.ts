@@ -60,7 +60,7 @@ class FakeProvider implements ModelProvider {
 
   async generateAnswer(input: Parameters<ModelProvider["generateAnswer"]>[0]) {
     return {
-      answerMd: `基于本地证据，问题“${input.question}”可以先得到以下结论：${input.evidence[0]?.text ?? ""}`,
+      answerMd: `Based on local evidence, the question "${input.question}" can be answered as follows: ${input.evidence[0]?.text ?? ""}`,
       citations: input.evidence.slice(0, 2).map((entry, index) => ({
         refId: entry.refId,
         kind: entry.kind,
@@ -72,9 +72,9 @@ class FakeProvider implements ModelProvider {
 
   async generateCard() {
     return {
-      claim: "AI 知识护照是对个人知识的结构化投影。",
-      evidenceSummary: "基于已确认节点总结出的能力边界与证据链。",
-      userView: "核心价值不在存储，而在编译与授权。"
+      claim: "An AI knowledge passport is a structured projection of personal knowledge.",
+      evidenceSummary: "Derived from accepted nodes, evidence chains, and explicit capability boundaries.",
+      userView: "The core value is not storage alone, but compilation and authorization."
     };
   }
 
@@ -111,7 +111,7 @@ describe("knowledge passport MVP flow", () => {
         title: "AI Passport Notes",
         privacyLevel: "L1_LOCAL_AI",
         projectKey: "passport-mvp",
-        textContent: "AI 个人知识护照的核心是把原始材料编译为结构化 wiki，再授权输出。",
+        textContent: "The core value of an AI personal knowledge passport is compiling raw material into a structured wiki and then exporting it under explicit authorization.",
         tags: ["passport", "knowledge"],
         metadata: {}
       }
@@ -136,7 +136,7 @@ describe("knowledge passport MVP flow", () => {
     });
 
     const research = await answerResearchQuery(context, {
-      question: "这个系统的核心价值是什么？",
+      question: "What is the core value of this system?",
       limit: 5,
       projectKey: "passport-mvp",
       tags: []
@@ -155,11 +155,11 @@ describe("knowledge passport MVP flow", () => {
     expect(output.flowbackNodeId).toMatch(/^node_/);
 
     const postcard = await createPostcard(context, {
-      title: "价值明信片",
+      title: "Value Postcard",
       cardType: "knowledge",
-      claim: "知识护照把个人知识变成可授权资产。",
-      evidenceSummary: "来自已确认 wiki node 与研究输出。",
-      userView: "先有编译，才有表达与代理。",
+      claim: "A knowledge passport turns personal knowledge into an authorized asset.",
+      evidenceSummary: "Backed by accepted wiki nodes and research outputs.",
+      userView: "Compilation must exist before expression and delegation.",
       relatedNodeIds: [firstNode.id],
       relatedSourceIds: [importResult.sourceId],
       privacyLevel: "L1_LOCAL_AI"
@@ -167,7 +167,7 @@ describe("knowledge passport MVP flow", () => {
     expect(postcard.postcardId).toMatch(/^card_/);
 
     const passportId = await createPassportSnapshot(context, {
-      title: "测试护照",
+      title: "Test Passport",
       includeNodeIds: [firstNode.id],
       includePostcardIds: [postcard.postcardId],
       privacyFloor: "L1_LOCAL_AI"

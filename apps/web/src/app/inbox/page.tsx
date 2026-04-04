@@ -11,12 +11,12 @@ export default async function InboxPage() {
   const sources = await listSources(getAppContext());
 
   return (
-    <PageShell currentPath="/inbox" title="Inbox" subtitle="统一入库，进入待编译收件箱">
+    <PageShell currentPath="/inbox" title="Inbox" subtitle="Bring everything into one place and send it into the compile queue">
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <SectionCard title="导入材料" description="支持 markdown、txt、pdf、url、image、chat transcript 和 audio。">
+        <SectionCard title="Import Sources" description="Supports markdown, txt, pdf, url, image, chat transcript, and audio.">
           <ImportForm />
         </SectionCard>
-        <SectionCard title="收件箱" description="每条材料保留来源、隐私等级和待处理状态。">
+        <SectionCard title="Inbox Queue" description="Each source keeps its origin, privacy level, and processing state.">
           <div className="space-y-4">
             {sources.map((source) => (
               <article key={source.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -32,16 +32,16 @@ export default async function InboxPage() {
                   </StatusBadge>
                 </div>
                 <p className="mt-3 text-sm text-[var(--muted)]">
-                  隐私：{source.privacyLevel}
-                  {source.projectKey ? ` · 项目：${source.projectKey}` : ""}
+                  Privacy: {source.privacyLevel}
+                  {source.projectKey ? ` · Project: ${source.projectKey}` : ""}
                 </p>
                 <div className="mt-4 flex items-center justify-between gap-3">
-                  <p className="line-clamp-2 text-sm leading-6 text-[var(--muted)]">{source.extractedText || source.originUrl || "待解析原文"}</p>
+                  <p className="line-clamp-2 text-sm leading-6 text-[var(--muted)]">{source.extractedText || source.originUrl || "Raw content pending extraction"}</p>
                   <CompileButton sourceId={source.id} />
                 </div>
               </article>
             ))}
-            {sources.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有任何 source。</p> : null}
+            {sources.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no sources yet.</p> : null}
           </div>
         </SectionCard>
       </div>

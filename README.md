@@ -1,67 +1,67 @@
-# AI个人知识护照系统
+# AI Personal Knowledge Passport System
 
-本项目是一个本地优先的个人知识编译系统，用来把原始材料持续编译为可追溯的个人 wiki，并将其中经筛选与授权的部分组织成知识明信片、知识护照与后续可扩展的场景签证。
+This project is a local-first personal knowledge compiler. It continuously compiles raw materials into a traceable personal wiki, then organizes selected and authorized parts into knowledge postcards, knowledge passports, and future scenario-specific visa bundles.
 
-当前公开仓库实现的是单用户 Web MVP，已经打通以下闭环：
+The public repository currently implements a single-user Web MVP with this end-to-end loop:
 
-`导入 -> 增量编译 -> 本地问答 -> 正式输出 -> 回流 -> 明信片 -> 简版护照 -> 本地备份`
+`import -> incremental compile -> local Q&A -> formal output -> flowback -> postcards -> lightweight passport -> local backup`
 
 ## Project Status
 
-- 当前阶段：公开 MVP / 开源早期阶段
-- 产品方向：本地优先、来源可追、AI 维护、用户裁决
-- 当前范围：单用户、本地运行、OpenAI 优先 provider、SQLite 持久化
+- Stage: public MVP / early open-source phase
+- Product direction: local-first, traceable sources, AI-maintained, user-governed
+- Current scope: single user, local runtime, OpenAI-first provider, SQLite persistence
 
 ## What Exists Today
 
-- 多源导入：`markdown`、`txt`、`pdf`、`url`、`image`、`chat`、`audio`
-- 本地对象存储与 SQLite 数据模型
-- FTS5 + embedding 混合检索
-- 知识编译、审阅队列、研究问答、输出回流
-- 明信片生成、护照快照生成、备份 zip
-- Next.js Web UI 与本地 worker
+- Multi-source import: `markdown`, `txt`, `pdf`, `url`, `image`, `chat`, `audio`
+- Local object storage and SQLite data model
+- Hybrid retrieval with FTS5 + embeddings
+- Knowledge compilation, review queue, research Q&A, and output flowback
+- Postcard generation, passport snapshot generation, and backup zip exports
+- Next.js Web UI and a local worker
 
 ## Architecture
 
-- `apps/web`: Web UI、Route Handlers、worker、服务层
-- `packages/shared`: 共享类型、Zod schema、常量
-- `data`: SQLite、本地对象存储、导出包、备份
+- `apps/web`: Web UI, Route Handlers, worker, and service layer
+- `packages/shared`: shared types, Zod schemas, and constants
+- `data`: SQLite, local object storage, exports, and backups
 
-核心技术栈：
+Core stack:
 
 - Next.js App Router
 - React + TypeScript
 - SQLite + Drizzle ORM + FTS5
-- OpenAI Provider 抽象
-- 本地 worker 队列
+- OpenAI provider abstraction
+- Local worker queue
 
 ## Quick Start
 
-1. 安装依赖
+1. Install dependencies
 
 ```bash
 npm install
 ```
 
-2. 配置环境变量
+2. Configure environment variables
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
 ```
 
-3. 启动应用和 worker
+3. Start the app and worker
 
 ```bash
 npm run dev:all
 ```
 
-4. 打开：
+4. Open:
 
 - [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 
 ## Environment
 
-`apps/web/.env.example` 中当前使用的变量：
+Current variables in `apps/web/.env.example`:
 
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
@@ -70,7 +70,7 @@ npm run dev:all
 - `AIKP_DATABASE_PATH`
 - `AIKP_INLINE_JOBS`
 
-如果没有 `OPENAI_API_KEY`，项目仍可进行部分本地操作，但 OCR、转写、编译、研究问答和护照生成会受限。
+Without `OPENAI_API_KEY`, the project can still perform some local operations, but OCR, transcription, compilation, research Q&A, and passport generation will be limited.
 
 ## Validation
 
@@ -82,7 +82,7 @@ npm run build
 
 ## Roadmap
 
-当前 GitHub 仓库已建立 `MVP` milestone，并按模块拆分了首批 issue：
+The GitHub repository already includes an `MVP` milestone and the first batch of issues split by subsystem:
 
 - `foundation`
 - `ingestion`
@@ -91,19 +91,19 @@ npm run build
 - `postcard-passport`
 - `backup`
 
-后续大方向包括：
+Next major directions include:
 
-- 更稳定的导入与解析
-- 更高质量的增量编译和审阅体验
-- 更强的引用、比较与冲突分析
-- 更适合公开展示的明信片与护照输出
-- 更可靠的备份与恢复能力
+- More stable ingestion and parsing
+- Higher-quality incremental compilation and review
+- Stronger citation, comparison, and conflict analysis
+- Better outward-facing postcard and passport outputs
+- More reliable backup and restore workflows
 
 ## Contributing
 
-欢迎贡献代码、文档、测试、样例和设计建议。
+Contributions of code, documentation, tests, fixtures, and design ideas are welcome.
 
-开始前请先阅读：
+Before contributing, please read:
 
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
@@ -111,4 +111,4 @@ npm run build
 
 ## License
 
-本项目采用 [MIT License](./LICENSE)。
+This project is licensed under the [MIT License](./LICENSE).
