@@ -68,6 +68,11 @@ export default async function AvatarsPage() {
                   <span className="rounded-full bg-black/5 px-3 py-1">cards {pack.includePostcardIds.length}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">{pack.createdAt}</span>
                 </div>
+                <div className="mt-4">
+                  <Link href={`/exports?agentPackId=${pack.id}`} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+                    Export Pack
+                  </Link>
+                </div>
               </article>
             ))}
             {packs.length === 0 ? <p className="text-sm text-[var(--muted)]">No agent packs exist yet.</p> : null}

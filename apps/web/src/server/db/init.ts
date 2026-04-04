@@ -259,6 +259,20 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       created_at text not null
     );
 
+    create table if not exists export_packages (
+      id text primary key,
+      object_type text not null,
+      object_id text not null,
+      title text not null,
+      format_version text not null,
+      file_path text not null,
+      manifest_json text not null,
+      bundle_sha256 text not null,
+      status text not null,
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists research_sessions (
       id text primary key,
       question text not null,

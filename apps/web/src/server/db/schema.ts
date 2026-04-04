@@ -237,6 +237,20 @@ export const avatarSimulationSessions = sqliteTable("avatar_simulation_sessions"
   createdAt: text("created_at").notNull()
 });
 
+export const exportPackages = sqliteTable("export_packages", {
+  id: text("id").primaryKey(),
+  objectType: text("object_type").notNull(),
+  objectId: text("object_id").notNull(),
+  title: text("title").notNull(),
+  formatVersion: text("format_version").notNull(),
+  filePath: text("file_path").notNull(),
+  manifestJson: text("manifest_json").notNull(),
+  bundleSha256: text("bundle_sha256").notNull(),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const researchSessions = sqliteTable("research_sessions", {
   id: text("id").primaryKey(),
   question: text("question").notNull(),
