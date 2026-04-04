@@ -1,5 +1,7 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
+
 import { PageShell } from "@/components/page-shell";
 import { PostcardForm } from "@/components/postcard-form";
 import { SectionCard, StatusBadge } from "@/components/ui";
@@ -13,7 +15,15 @@ export default async function PostcardsPage() {
     <PageShell currentPath="/postcards" title="Postcards" subtitle="Compress important knowledge into composable, traceable communication units">
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <SectionCard title="Create Postcard" description="Supports manual authoring or AI-assisted generation from related nodes and sources.">
-          <PostcardForm />
+          <div className="space-y-4">
+            <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
+              <span className="text-[var(--muted)]">Postcards can now be projected outward through visa bundles and secret links.</span>
+              <Link href="/visas" className="rounded-full border border-[var(--line)] px-4 py-2">
+                Open Visa Workshop
+              </Link>
+            </div>
+            <PostcardForm />
+          </div>
         </SectionCard>
         <SectionCard title="Postcard Library" description="These entries can later be composed into a passport.">
           <div className="space-y-4">

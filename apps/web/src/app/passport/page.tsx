@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
 import { BackupRestoreForm } from "@/components/backup-restore-form";
@@ -20,6 +21,12 @@ export default async function PassportPage() {
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard title="Passport and Backup Controls" description="Passport generation runs through the queue, and backups package the database, object files, and manifest.">
           <div className="space-y-6">
+            <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
+              <span className="text-[var(--muted)]">When you are ready to package a scenario-specific bundle, move into the Visa workshop.</span>
+              <Link href="/visas" className="rounded-full border border-[var(--line)] px-4 py-2">
+                Open Visa Workshop
+              </Link>
+            </div>
             <PassportControls />
             <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
               <p className="text-sm leading-6 text-[var(--muted)]">

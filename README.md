@@ -19,6 +19,7 @@ The public repository currently implements a single-user Web system with this en
 - Hybrid retrieval with FTS5 + embeddings
 - Knowledge compilation, review queue, research Q&A, and output flowback
 - Postcard generation, passport snapshot generation, and backup zip exports
+- Visa bundle generation, secret-link sharing, and machine-manifest downloads
 - Fragment inspection, health diagnostics, audit history, and visual knowledge summaries
 - Next.js Web UI and a local worker
 
@@ -37,6 +38,7 @@ The current app shell includes:
 - `Visuals`
 - `Audit Log`
 - `Passport & Backup`
+- `Visas`
 - `Fragments`
 
 ## Architecture
@@ -95,8 +97,11 @@ Current variables in `apps/web/.env.example`:
 - `AIKP_DATA_DIR`
 - `AIKP_DATABASE_PATH`
 - `AIKP_INLINE_JOBS`
+- `AIKP_SHARE_SECRET`
 
 Without `OPENAI_API_KEY`, the project can still perform some local operations, but OCR, transcription, compilation, research Q&A, and passport generation will be limited.
+
+`AIKP_SHARE_SECRET` is optional. If omitted, the app will generate and persist a local share secret under `data/` so visa secret links remain stable across restarts.
 
 Recommended local defaults:
 
