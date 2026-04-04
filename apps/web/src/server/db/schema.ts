@@ -194,6 +194,21 @@ export const auditLogs = sqliteTable("audit_logs", {
   notes: text("notes").notNull().default("")
 });
 
+export const grants = sqliteTable("grants", {
+  id: text("id").primaryKey(),
+  objectType: text("object_type").notNull(),
+  objectId: text("object_id").notNull(),
+  granteeType: text("grantee_type").notNull(),
+  granteeId: text("grantee_id"),
+  accessLevel: text("access_level").notNull(),
+  expiresAt: text("expires_at"),
+  status: text("status").notNull(),
+  redactionRulesJson: text("redaction_rules_json").notNull().default("{}"),
+  notes: text("notes").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const backupRuns = sqliteTable("backup_runs", {
   id: text("id").primaryKey(),
   filePath: text("file_path").notNull(),

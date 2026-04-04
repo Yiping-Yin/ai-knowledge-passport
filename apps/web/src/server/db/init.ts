@@ -202,6 +202,21 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       notes text not null default ''
     );
 
+    create table if not exists grants (
+      id text primary key,
+      object_type text not null,
+      object_id text not null,
+      grantee_type text not null,
+      grantee_id text,
+      access_level text not null,
+      expires_at text,
+      status text not null,
+      redaction_rules_json text not null default '{}',
+      notes text not null default '',
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists backup_runs (
       id text primary key,
       file_path text not null,
