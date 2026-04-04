@@ -2,7 +2,9 @@ node_modules
 .next
 coverage
 dist
+*.tsbuildinfo
 data/*.sqlite
+data/*.sqlite-*
 data/*.db
 data/*.db-*
 data/tmp
