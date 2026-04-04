@@ -19,7 +19,7 @@
     "cheerio": "^1.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
-    "drizzle-orm": "^0.44.2",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.7.0",
     "nanoid": "^5.1.5",
     "next": "^16.2.2",
