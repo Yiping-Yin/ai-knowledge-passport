@@ -54,6 +54,22 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       created_at text not null
     );
 
+    create table if not exists claims (
+      id text primary key,
+      claim_type text not null,
+      title text not null,
+      statement text not null,
+      status text not null,
+      confidence real not null default 0,
+      source_fragment_ids_json text not null default '[]',
+      source_ids_json text not null default '[]',
+      node_id text references wiki_nodes(id) on delete set null,
+      project_key text,
+      tags_json text not null default '[]',
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists jobs (
       id text primary key,
       job_type text not null,
@@ -184,6 +200,21 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       timestamp text not null,
       result text not null,
       notes text not null default ''
+    );
+
+    create table if not exists grants (
+      id text primary key,
+      object_type text not null,
+      object_id text not null,
+      grantee_type text not null,
+      grantee_id text,
+      access_level text not null,
+      expires_at text,
+      status text not null,
+      redaction_rules_json text not null default '{}',
+      notes text not null default '',
+      created_at text not null,
+      updated_at text not null
     );
 
     create table if not exists backup_runs (
