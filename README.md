@@ -162,6 +162,8 @@ Next major directions include:
 - Better outward-facing postcard and passport outputs
 - More reliable backup and restore workflows
 
+For the full product-system framing, see [docs/project-blueprint.md](./docs/project-blueprint.md).
+
 ## Contributing
 
 Contributions of code, documentation, tests, fixtures, and design ideas are welcome.
