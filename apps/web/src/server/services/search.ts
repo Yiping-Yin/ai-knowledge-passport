@@ -1,10 +1,56 @@
 import { desc, eq, inArray } from "drizzle-orm";
 
 import type { AppContext } from "@/server/context";
-import { sourceFragments, wikiNodes } from "@/server/db/schema";
+import { sourceFragments, sources, wikiNodes } from "@/server/db/schema";
 import { cosineSimilarity } from "@/server/utils/text";
 
 import { parseJsonArray } from "./common";
+
+function tokenizeQuery(query: string) {
+  return query
+    .toLowerCase()
+    .split(/[\s,.;:!?()[\]{}"'"'"'，。；：！？、]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+}
+
+function lexicalScore(text: string, queryTokens: string[]) {
+  if (!queryTokens.length) {
+    return 0;
+  }
+
+  const normalized = text.toLowerCase();
+  const hits = queryTokens.filter((token) => normalized.includes(token)).length;
+  return hits / queryTokens.length;
+}
+
+type FragmentSearchHit = {
+  id: string;
+  sourceId: string;
+  sourceTitle: string;
+  text: string;
+  score: number;
+  lexicalScore: number;
+  semanticScore: number;
+  retrievalKind: "fts" | "fallback";
+};
+
+type NodeSearchHit = {
+  id: string;
+  title: string;
+  summary: string;
+  body: string;
+  projectKey?: string | null;
+  score: number;
+  lexicalScore: number;
+  semanticScore: number;
+  retrievalKind: "fts" | "fallback";
+};
+
+export type SearchKnowledgeResult = {
+  fragments: FragmentSearchHit[];
+  nodes: NodeSearchHit[];
+};
 
 export async function searchKnowledge(
   context: AppContext,
@@ -13,8 +59,9 @@ export async function searchKnowledge(
     limit?: number;
     projectKey?: string;
   }
-) {
+): Promise<SearchKnowledgeResult> {
   const limit = query.limit ?? 8;
+  const queryTokens = tokenizeQuery(query.q);
   const fragmentRows = context.sqlite
     .prepare(
       `
@@ -52,33 +99,9 @@ export async function searchKnowledge(
       })
     : [];
 
-  if (!context.provider.isConfigured) {
-    return {
-      fragments: (fragmentRows.length
-        ? fragmentRows
-        : fallbackFragments.map((entry) => ({
-            id: entry.id,
-            sourceId: entry.sourceId,
-            text: entry.text
-          }))).slice(0, limit).map((entry) => ({
-        ...entry,
-        score: 0.5
-      })),
-      nodes: (nodeRows.length
-        ? nodeRows
-        : fallbackNodes.map((entry) => ({
-            id: entry.id,
-            title: entry.title,
-            summary: entry.summary,
-            body: entry.bodyMd
-          }))).slice(0, limit).map((entry) => ({
-        ...entry,
-        score: 0.5
-      }))
-    };
-  }
-
-  const [queryEmbedding = []] = await context.provider.embedText([query.q]);
+  const [queryEmbedding = []] = context.provider.isConfigured
+    ? await context.provider.embedText([query.q])
+    : [[]];
 
   const fragmentDetails = await context.db.query.sourceFragments.findMany({
     where: inArray(
@@ -86,6 +109,12 @@ export async function searchKnowledge(
       (fragmentRows.length ? fragmentRows : fallbackFragments).map((row) => row.id)
     )
   });
+  const fragmentSourceIds = Array.from(new Set(fragmentDetails.map((fragment) => fragment.sourceId)));
+  const fragmentSources = fragmentSourceIds.length
+    ? await context.db.query.sources.findMany({
+        where: inArray(sources.id, fragmentSourceIds)
+      })
+    : [];
 
   const nodeDetails = await context.db.query.wikiNodes.findMany({
     where: inArray(
@@ -95,26 +124,61 @@ export async function searchKnowledge(
     orderBy: [desc(wikiNodes.updatedAt)]
   });
 
-  return {
-    fragments: fragmentDetails
-      .map((fragment) => ({
-        id: fragment.id,
-        sourceId: fragment.sourceId,
-        text: fragment.text,
-        score: cosineSimilarity(parseJsonArray<number>(fragment.embeddingJson), queryEmbedding)
-      }))
-      .sort((left, right) => right.score - left.score)
-      .slice(0, limit),
-    nodes: nodeDetails
-      .filter((node) => node.status === "accepted")
-      .map((node) => ({
+  const fragmentHits: FragmentSearchHit[] = fragmentDetails
+      .map((fragment) => {
+      const source = fragmentSources.find((entry) => entry.id === fragment.sourceId);
+      if (!source) {
+        return null;
+      }
+
+      if (query.projectKey && source.projectKey !== query.projectKey) {
+        return null;
+      }
+
+      const semantic = context.provider.isConfigured
+        ? cosineSimilarity(parseJsonArray<number>(fragment.embeddingJson), queryEmbedding)
+        : 0;
+      const lexical = lexicalScore(fragment.text, queryTokens);
+        return {
+          id: fragment.id,
+          sourceId: fragment.sourceId,
+          sourceTitle: source.title,
+          text: fragment.text,
+          lexicalScore: lexical,
+          semanticScore: semantic,
+          score: context.provider.isConfigured ? (semantic * 0.65) + (lexical * 0.35) : lexical,
+          retrievalKind: (fragmentRows.some((row) => row.id === fragment.id) ? "fts" : "fallback") as "fts" | "fallback"
+        };
+      })
+    .filter((entry): entry is FragmentSearchHit => Boolean(entry))
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit);
+
+  const nodeHits: NodeSearchHit[] = nodeDetails
+    .filter((node) => node.status === "accepted")
+    .filter((node) => !query.projectKey || node.projectKey === query.projectKey)
+    .map((node) => {
+      const semantic = context.provider.isConfigured
+        ? cosineSimilarity(parseJsonArray<number>(node.embeddingJson), queryEmbedding)
+        : 0;
+      const lexical = lexicalScore(`${node.title}\n${node.summary}\n${node.bodyMd}`, queryTokens);
+      return {
         id: node.id,
         title: node.title,
         summary: node.summary,
         body: node.bodyMd,
-        score: cosineSimilarity(parseJsonArray<number>(node.embeddingJson), queryEmbedding)
-      }))
-      .sort((left, right) => right.score - left.score)
-      .slice(0, limit)
+        projectKey: node.projectKey,
+        lexicalScore: lexical,
+        semanticScore: semantic,
+        score: context.provider.isConfigured ? (semantic * 0.65) + (lexical * 0.35) : lexical,
+        retrievalKind: (nodeRows.some((row) => row.id === node.id) ? "fts" : "fallback") as "fts" | "fallback"
+      };
+    })
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit);
+
+  return {
+    fragments: fragmentHits,
+    nodes: nodeHits
   };
 }

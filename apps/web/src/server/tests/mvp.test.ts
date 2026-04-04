@@ -177,4 +177,89 @@ describe("knowledge passport MVP flow", () => {
     const backupFiles = await fs.readdir(path.join(dataDir, "backups"));
     expect(backupFiles.some((entry) => entry.endsWith(".zip"))).toBe(true);
   });
+
+  it("returns an insufficient-evidence warning for comparison questions with only one source", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-research-weak-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "Single Source",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "知识护照强调证据链和授权边界。",
+        tags: ["passport"],
+        metadata: {}
+      }
+    });
+
+    const result = await answerResearchQuery(context, {
+      question: "比较知识护照和数字分身的差异是什么？",
+      limit: 5,
+      projectKey: "passport-mvp",
+      tags: []
+    });
+
+    expect(result.warnings.some((warning) => warning.code === "insufficient_evidence")).toBe(true);
+    expect(result.answerMd).toContain("当前本地证据不足");
+  });
+
+  it("flags conflicting evidence when multiple sources contain contrasting cues", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-research-conflict-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "View A",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "知识护照适合做能力展示，但是不应该直接等同于数字分身。",
+        tags: ["passport", "avatar"],
+        metadata: {}
+      }
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "View B",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "数字分身强调代理行为，然而知识护照更偏向证据化表达。",
+        tags: ["passport", "avatar"],
+        metadata: {}
+      }
+    });
+
+    const result = await answerResearchQuery(context, {
+      question: "比较知识护照和数字分身的关系。",
+      limit: 6,
+      projectKey: "passport-mvp",
+      tags: []
+    });
+
+    expect(result.warnings.some((warning) => warning.code === "conflicting_evidence")).toBe(true);
+    expect(result.citations.length).toBeGreaterThan(0);
+    expect(result.retrievalSummary.uniqueEvidenceRefs).toBeGreaterThan(1);
+  });
 });
