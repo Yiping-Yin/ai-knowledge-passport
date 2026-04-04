@@ -151,6 +151,11 @@ export const backupCreateSchema = z.object({
   note: z.string().default("manual_backup")
 });
 
+export const backupRestoreSchema = z.object({
+  backupId: z.string().min(1),
+  targetDir: z.string().optional()
+});
+
 export type PrivacyLevel = z.infer<typeof privacyLevelSchema>;
 export type SourceType = z.infer<typeof sourceTypeSchema>;
 export type SourceStatus = z.infer<typeof sourceStatusSchema>;
@@ -168,3 +173,4 @@ export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
 export type PostcardCreateInput = z.infer<typeof postcardCreateSchema>;
 export type PassportGenerateInput = z.infer<typeof passportGenerateSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
+export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;

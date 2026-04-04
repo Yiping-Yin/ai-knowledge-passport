@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import ReactMarkdown from "react-markdown";
 
+import { BackupRestoreForm } from "@/components/backup-restore-form";
 import { PageShell } from "@/components/page-shell";
 import { PassportControls } from "@/components/passport-controls";
 import { SectionCard, StatusBadge } from "@/components/ui";
@@ -18,7 +19,17 @@ export default async function PassportPage() {
     <PageShell currentPath="/passport" title="Passport & Backup" subtitle="Generate a lightweight knowledge passport and archive the current state safely">
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard title="Passport and Backup Controls" description="Passport generation runs through the queue, and backups package the database, object files, and manifest.">
-          <PassportControls />
+          <div className="space-y-6">
+            <PassportControls />
+            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
+              <p className="text-sm leading-6 text-[var(--muted)]">
+                Backup restore currently extracts a selected archive into a clean target directory instead of overwriting the live runtime.
+              </p>
+              <div className="mt-4">
+                <BackupRestoreForm />
+              </div>
+            </div>
+          </div>
         </SectionCard>
         <div className="space-y-6">
           <SectionCard title="Passport Snapshots" description="Human-readable Markdown and machine-readable manifests are stored together.">
@@ -60,8 +71,14 @@ export default async function PassportPage() {
             <div className="space-y-3">
               {backups.map((backup) => (
                 <article key={backup.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
-                  <p className="font-medium">{backup.filePath}</p>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="font-medium">{backup.filePath}</p>
+                    <StatusBadge>{backup.id}</StatusBadge>
+                  </div>
                   <p className="mt-2 text-[var(--muted)]">{backup.note}</p>
+                  <p className="mt-2 text-xs text-[var(--muted)]">
+                    Objects {backup.manifest.objectFileCount} · SHA {backup.manifest.databaseSha256.slice(0, 12)}...
+                  </p>
                 </article>
               ))}
               {backups.length === 0 ? <p className="text-sm text-[var(--muted)]">There is no backup history yet.</p> : null}
