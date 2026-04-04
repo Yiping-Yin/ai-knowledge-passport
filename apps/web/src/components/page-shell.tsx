@@ -12,6 +12,7 @@ const navigation = [
   { href: "/research", label: "Research", icon: FileSearch },
   { href: "/outputs", label: "Outputs", icon: BookOpenText },
   { href: "/postcards", label: "Postcards", icon: Activity },
+  { href: "/visas", label: "Visas", icon: Key },
   { href: "/grants", label: "Grants", icon: Key },
   { href: "/compilation-runs", label: "Compilation Runs", icon: Workflow },
   { href: "/health", label: "Health Center", icon: HeartPulse },

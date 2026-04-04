@@ -158,6 +158,26 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       created_at text not null
     );
 
+    create table if not exists visa_bundles (
+      id text primary key,
+      title text not null,
+      audience_label text not null,
+      passport_id text references passport_snapshots(id) on delete set null,
+      human_markdown text not null,
+      machine_manifest_json text not null,
+      include_node_ids_json text not null default '[]',
+      include_postcard_ids_json text not null default '[]',
+      privacy_floor text not null,
+      redaction_json text not null default '{}',
+      allow_machine_download integer not null default 1,
+      expires_at text,
+      status text not null,
+      token_hash text not null,
+      last_accessed_at text,
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists research_sessions (
       id text primary key,
       question text not null,

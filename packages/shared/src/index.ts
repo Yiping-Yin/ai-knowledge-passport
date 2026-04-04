@@ -83,6 +83,12 @@ export const citationKinds = [
   "output"
 ] as const;
 
+export const visaBundleStatuses = [
+  "active",
+  "revoked",
+  "expired"
+] as const;
+
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
 export const sourceStatusSchema = z.enum(sourceStatuses);
@@ -94,6 +100,7 @@ export const jobStatusSchema = z.enum(jobStatuses);
 export const postcardTypeSchema = z.enum(postcardTypes);
 export const outputTypeSchema = z.enum(outputTypes);
 export const citationKindSchema = z.enum(citationKinds);
+export const visaBundleStatusSchema = z.enum(visaBundleStatuses);
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
@@ -147,6 +154,28 @@ export const passportGenerateSchema = z.object({
   privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI")
 });
 
+export const visaRedactionSchema = z.object({
+  hideOriginUrls: z.boolean().default(false),
+  hideSourcePaths: z.boolean().default(false),
+  hideRawSourceIds: z.boolean().default(false)
+});
+
+export const visaBundleCreateSchema = z.object({
+  title: z.string().min(1),
+  passportId: z.string().optional(),
+  includeNodeIds: z.array(z.string()).default([]),
+  includePostcardIds: z.array(z.string()).default([]),
+  privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI"),
+  audienceLabel: z.string().min(1).default("General audience"),
+  expiresAt: z.string().datetime().optional(),
+  allowMachineDownload: z.boolean().default(true),
+  redaction: visaRedactionSchema.default({
+    hideOriginUrls: false,
+    hideSourcePaths: false,
+    hideRawSourceIds: false
+  })
+});
+
 export const backupCreateSchema = z.object({
   note: z.string().default("manual_backup")
 });
@@ -167,10 +196,37 @@ export type JobStatus = z.infer<typeof jobStatusSchema>;
 export type PostcardType = z.infer<typeof postcardTypeSchema>;
 export type OutputType = z.infer<typeof outputTypeSchema>;
 export type CitationKind = z.infer<typeof citationKindSchema>;
+export type VisaBundleStatus = z.infer<typeof visaBundleStatusSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
 export type PostcardCreateInput = z.infer<typeof postcardCreateSchema>;
 export type PassportGenerateInput = z.infer<typeof passportGenerateSchema>;
+export type VisaRedactionConfig = z.infer<typeof visaRedactionSchema>;
+export type VisaBundleCreateInput = z.infer<typeof visaBundleCreateSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
+
+export type VisaBundleSummary = {
+  id: string;
+  title: string;
+  audienceLabel: string;
+  passportId: string | null;
+  includeNodeIds: string[];
+  includePostcardIds: string[];
+  privacyFloor: PrivacyLevel;
+  redaction: VisaRedactionConfig;
+  allowMachineDownload: boolean;
+  expiresAt: string | null;
+  status: VisaBundleStatus;
+  lastAccessedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  secretPath: string;
+  machinePath: string | null;
+};
+
+export type VisaBundleSnapshot = VisaBundleSummary & {
+  humanMarkdown: string;
+  machineManifest: Record<string, unknown>;
+};

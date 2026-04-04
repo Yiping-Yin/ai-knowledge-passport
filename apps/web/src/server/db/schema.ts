@@ -150,6 +150,26 @@ export const passportSnapshots = sqliteTable("passport_snapshots", {
   createdAt: text("created_at").notNull()
 });
 
+export const visaBundles = sqliteTable("visa_bundles", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  audienceLabel: text("audience_label").notNull(),
+  passportId: text("passport_id").references(() => passportSnapshots.id, { onDelete: "set null" }),
+  humanMarkdown: text("human_markdown").notNull(),
+  machineManifestJson: text("machine_manifest_json").notNull(),
+  includeNodeIdsJson: text("include_node_ids_json").notNull().default("[]"),
+  includePostcardIdsJson: text("include_postcard_ids_json").notNull().default("[]"),
+  privacyFloor: text("privacy_floor").notNull(),
+  redactionJson: text("redaction_json").notNull().default("{}"),
+  allowMachineDownload: integer("allow_machine_download").notNull().default(1),
+  expiresAt: text("expires_at"),
+  status: text("status").notNull(),
+  tokenHash: text("token_hash").notNull(),
+  lastAccessedAt: text("last_accessed_at"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const researchSessions = sqliteTable("research_sessions", {
   id: text("id").primaryKey(),
   question: text("question").notNull(),

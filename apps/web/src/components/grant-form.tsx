@@ -38,6 +38,7 @@ export function GrantForm() {
           <span>Object Type</span>
           <select name="objectType" defaultValue="passport_snapshot" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
             <option value="passport_snapshot">passport_snapshot</option>
+            <option value="visa_bundle">visa_bundle</option>
             <option value="postcard">postcard</option>
             <option value="wiki_node">wiki_node</option>
             <option value="source">source</option>
@@ -52,6 +53,7 @@ export function GrantForm() {
           <select name="granteeType" defaultValue="collaborator" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
             <option value="collaborator">collaborator</option>
             <option value="ai_agent">ai_agent</option>
+            <option value="secret_link">secret_link</option>
             <option value="public_link">public_link</option>
           </select>
         </label>
