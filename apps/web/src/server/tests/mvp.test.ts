@@ -6,14 +6,14 @@ import type { ModelProvider } from "@/server/providers/model-provider";
 import { createAppContext } from "@/server/context";
 import { wikiEdges, wikiNodes } from "@/server/db/schema";
 import { createBackupRun } from "@/server/services/backups";
+import { createId } from "@/server/services/common";
 import { applyReviewAction, compileSource } from "@/server/services/compiler";
+import { syncWikiNodeFts } from "@/server/services/fts";
 import { createOutput } from "@/server/services/outputs";
 import { createPassportSnapshot } from "@/server/services/passports";
 import { createPostcard } from "@/server/services/postcards";
 import { answerResearchQuery } from "@/server/services/research";
 import { createSourceImport, listSources, retrySourceProcessing } from "@/server/services/sources";
-import { syncWikiNodeFts } from "@/server/services/fts";
-import { createId } from "@/server/services/common";
 
 import { describe, expect, it } from "vitest";
 
@@ -61,7 +61,7 @@ class FakeProvider implements ModelProvider {
 
   async generateAnswer(input: Parameters<ModelProvider["generateAnswer"]>[0]) {
     return {
-      answerMd: `基于本地证据，问题“${input.question}”可以先得到以下结论：${input.evidence[0]?.text ?? ""}`,
+      answerMd: `Based on local evidence, the question "${input.question}" can be answered as follows: ${input.evidence[0]?.text ?? ""}`,
       citations: input.evidence.slice(0, 2).map((entry, index) => ({
         refId: entry.refId,
         kind: entry.kind,
@@ -73,9 +73,9 @@ class FakeProvider implements ModelProvider {
 
   async generateCard() {
     return {
-      claim: "AI 知识护照是对个人知识的结构化投影。",
-      evidenceSummary: "基于已确认节点总结出的能力边界与证据链。",
-      userView: "核心价值不在存储，而在编译与授权。"
+      claim: "An AI knowledge passport is a structured projection of personal knowledge.",
+      evidenceSummary: "Derived from accepted nodes, evidence chains, and explicit capability boundaries.",
+      userView: "The core value is not storage alone, but compilation and authorization."
     };
   }
 
@@ -112,7 +112,7 @@ describe("knowledge passport MVP flow", () => {
         title: "AI Passport Notes",
         privacyLevel: "L1_LOCAL_AI",
         projectKey: "passport-mvp",
-        textContent: "AI 个人知识护照的核心是把原始材料编译为结构化 wiki，再授权输出。",
+        textContent: "The core value of an AI personal knowledge passport is compiling raw material into a structured wiki and then exporting it under explicit authorization.",
         tags: ["passport", "knowledge"],
         metadata: {}
       }
@@ -137,7 +137,7 @@ describe("knowledge passport MVP flow", () => {
     });
 
     const research = await answerResearchQuery(context, {
-      question: "这个系统的核心价值是什么？",
+      question: "What is the core value of this system?",
       limit: 5,
       projectKey: "passport-mvp",
       tags: []
@@ -156,11 +156,11 @@ describe("knowledge passport MVP flow", () => {
     expect(output.flowbackNodeId).toMatch(/^node_/);
 
     const postcard = await createPostcard(context, {
-      title: "价值明信片",
+      title: "Value Postcard",
       cardType: "knowledge",
-      claim: "知识护照把个人知识变成可授权资产。",
-      evidenceSummary: "来自已确认 wiki node 与研究输出。",
-      userView: "先有编译，才有表达与代理。",
+      claim: "A knowledge passport turns personal knowledge into an authorized asset.",
+      evidenceSummary: "Backed by accepted wiki nodes and research outputs.",
+      userView: "Compilation must exist before expression and delegation.",
       relatedNodeIds: [firstNode.id],
       relatedSourceIds: [importResult.sourceId],
       privacyLevel: "L1_LOCAL_AI"
@@ -168,7 +168,7 @@ describe("knowledge passport MVP flow", () => {
     expect(postcard.postcardId).toMatch(/^card_/);
 
     const passportId = await createPassportSnapshot(context, {
-      title: "测试护照",
+      title: "Test Passport",
       includeNodeIds: [firstNode.id],
       includePostcardIds: [postcard.postcardId],
       privacyFloor: "L1_LOCAL_AI"
@@ -193,27 +193,28 @@ describe("knowledge passport MVP flow", () => {
       databasePath: path.join(dataDir, "test.sqlite"),
       provider: new FakeProvider()
     });
+
     const existingNodeId = createId("node");
     await context.db.insert(wikiNodes).values({
       id: existingNodeId,
       nodeType: "summary",
       title: "AI Passport Notes / Summary",
-      summary: "已有知识节点",
-      bodyMd: "# AI Passport Notes\n\n已有知识节点正文",
+      summary: "Existing knowledge node",
+      bodyMd: "# AI Passport Notes\n\nExisting knowledge body",
       status: "accepted",
       sourceIdsJson: JSON.stringify(["src_existing"]),
       tagsJson: JSON.stringify(["passport"]),
       projectKey: "passport-mvp",
       privacyLevel: "L1_LOCAL_AI",
-      embeddingJson: JSON.stringify((await context.provider.embedText(["AI Passport Notes / Summary\n已有知识节点"]))[0]),
+      embeddingJson: JSON.stringify((await context.provider.embedText(["AI Passport Notes / Summary\nExisting knowledge node"]))[0]),
       updatedAt: new Date().toISOString(),
       createdAt: new Date().toISOString()
     });
     syncWikiNodeFts(context, {
       id: existingNodeId,
       title: "AI Passport Notes / Summary",
-      summary: "已有知识节点",
-      bodyMd: "# AI Passport Notes\n\n已有知识节点正文"
+      summary: "Existing knowledge node",
+      bodyMd: "# AI Passport Notes\n\nExisting knowledge body"
     });
 
     const importResult = await createSourceImport(context, {
@@ -222,7 +223,7 @@ describe("knowledge passport MVP flow", () => {
         title: "AI Passport Notes",
         privacyLevel: "L1_LOCAL_AI",
         projectKey: "passport-mvp",
-        textContent: "这是一个重复主题的新来源。",
+        textContent: "This is a new source for a duplicate topic.",
         tags: ["passport", "knowledge"],
         metadata: {}
       }
@@ -296,14 +297,14 @@ describe("knowledge passport MVP flow", () => {
         id: targetNodeId,
         nodeType: "theme",
         title: "Knowledge Passport",
-        summary: "主节点",
-        bodyMd: "主节点正文",
+        summary: "Primary node",
+        bodyMd: "Primary body",
         status: "accepted",
         sourceIdsJson: JSON.stringify(["src_a"]),
         tagsJson: JSON.stringify(["passport"]),
         projectKey: "passport-mvp",
         privacyLevel: "L1_LOCAL_AI",
-        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport\n主节点正文"]))[0]),
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport\nPrimary body"]))[0]),
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
       },
@@ -311,14 +312,14 @@ describe("knowledge passport MVP flow", () => {
         id: pendingNodeId,
         nodeType: "theme",
         title: "Knowledge Passport Candidate",
-        summary: "待合并节点",
-        bodyMd: "待合并节点正文",
+        summary: "Pending node",
+        bodyMd: "Pending node body",
         status: "pending_review",
         sourceIdsJson: JSON.stringify(["src_b"]),
         tagsJson: JSON.stringify(["knowledge"]),
         projectKey: "passport-mvp",
         privacyLevel: "L1_LOCAL_AI",
-        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport Candidate\n待合并节点正文"]))[0]),
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport Candidate\nPending node body"]))[0]),
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
       },
@@ -326,22 +327,22 @@ describe("knowledge passport MVP flow", () => {
         id: relatedNodeId,
         nodeType: "concept",
         title: "Evidence Chain",
-        summary: "关联节点",
-        bodyMd: "关联节点正文",
+        summary: "Related node",
+        bodyMd: "Related node body",
         status: "accepted",
         sourceIdsJson: JSON.stringify(["src_c"]),
         tagsJson: JSON.stringify(["evidence"]),
         projectKey: "passport-mvp",
         privacyLevel: "L1_LOCAL_AI",
-        embeddingJson: JSON.stringify((await context.provider.embedText(["Evidence Chain\n关联节点正文"]))[0]),
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Evidence Chain\nRelated node body"]))[0]),
         updatedAt: new Date().toISOString(),
         createdAt: new Date().toISOString()
       }
     ]);
 
-    syncWikiNodeFts(context, { id: targetNodeId, title: "Knowledge Passport", summary: "主节点", bodyMd: "主节点正文" });
-    syncWikiNodeFts(context, { id: pendingNodeId, title: "Knowledge Passport Candidate", summary: "待合并节点", bodyMd: "待合并节点正文" });
-    syncWikiNodeFts(context, { id: relatedNodeId, title: "Evidence Chain", summary: "关联节点", bodyMd: "关联节点正文" });
+    syncWikiNodeFts(context, { id: targetNodeId, title: "Knowledge Passport", summary: "Primary node", bodyMd: "Primary body" });
+    syncWikiNodeFts(context, { id: pendingNodeId, title: "Knowledge Passport Candidate", summary: "Pending node", bodyMd: "Pending node body" });
+    syncWikiNodeFts(context, { id: relatedNodeId, title: "Evidence Chain", summary: "Related node", bodyMd: "Related node body" });
 
     await context.db.insert(wikiEdges).values([
       {
@@ -383,5 +384,90 @@ describe("knowledge passport MVP flow", () => {
     expect(mergedNode?.status).toBe("merged");
     expect(redirectedEdges.some((edge) => edge.fromNodeId === targetNodeId && edge.toNodeId === relatedNodeId)).toBe(true);
     expect(redirectedEdges.some((edge) => edge.fromNodeId === relatedNodeId && edge.toNodeId === targetNodeId)).toBe(true);
+  });
+
+  it("returns an insufficient-evidence warning for comparison questions with only one source", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-research-weak-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "Single Source",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "Knowledge passports emphasize evidence chains and authorization boundaries.",
+        tags: ["passport"],
+        metadata: {}
+      }
+    });
+
+    const result = await answerResearchQuery(context, {
+      question: "Compare the differences between knowledge passports and digital twins.",
+      limit: 5,
+      projectKey: "passport-mvp",
+      tags: []
+    });
+
+    expect(result.warnings.some((warning) => warning.code === "insufficient_evidence")).toBe(true);
+    expect(result.answerMd).toContain("Current local evidence is insufficient");
+  });
+
+  it("flags conflicting evidence when multiple sources contain contrasting cues", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-research-conflict-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "View A",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "Knowledge passports work well for capability presentation, but they should not be treated as the same thing as digital twins.",
+        tags: ["passport", "avatar"],
+        metadata: {}
+      }
+    });
+
+    await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "View B",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "Digital twins emphasize delegated behavior, whereas knowledge passports are more about evidence-based expression.",
+        tags: ["passport", "avatar"],
+        metadata: {}
+      }
+    });
+
+    const result = await answerResearchQuery(context, {
+      question: "Compare the relationship between knowledge passports and digital twins.",
+      limit: 6,
+      projectKey: "passport-mvp",
+      tags: []
+    });
+
+    expect(result.warnings.some((warning) => warning.code === "conflicting_evidence")).toBe(true);
+    expect(result.citations.length).toBeGreaterThan(0);
+    expect(result.retrievalSummary.uniqueEvidenceRefs).toBeGreaterThan(1);
   });
 });
