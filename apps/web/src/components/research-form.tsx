@@ -2,8 +2,21 @@
 
 import { useState, useTransition } from "react";
 
+type ResearchResult = {
+  answerMd: string;
+  citations: Array<{ refId: string; excerpt: string; kind: string; score: number }>;
+  warnings: Array<{ code: string; message: string }>;
+  retrievalSummary: {
+    selectedEvidenceCount: number;
+    uniqueEvidenceRefs: number;
+    fragmentCount: number;
+    nodeCount: number;
+    topScore: number;
+  };
+};
+
 export function ResearchForm() {
-  const [result, setResult] = useState<{ answerMd: string; citations: Array<{ refId: string; excerpt: string }> } | null>(null);
+  const [result, setResult] = useState<ResearchResult | null>(null);
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -56,6 +69,35 @@ export function ResearchForm() {
 
       {result ? (
         <div className="space-y-4 rounded-3xl border border-[var(--line)] bg-white/80 p-5">
+          {result.warnings.length > 0 ? (
+            <div className="space-y-2">
+              {result.warnings.map((warning) => (
+                <div key={warning.code} className="rounded-2xl bg-[var(--warn-soft)] px-4 py-3 text-sm text-[var(--warn)]">
+                  {warning.message}
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="grid gap-3 md:grid-cols-4">
+            <div className="rounded-2xl border border-[var(--line)] px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Selected</p>
+              <p className="mt-2 text-lg font-semibold">{result.retrievalSummary.selectedEvidenceCount}</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Unique Refs</p>
+              <p className="mt-2 text-lg font-semibold">{result.retrievalSummary.uniqueEvidenceRefs}</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Fragments</p>
+              <p className="mt-2 text-lg font-semibold">{result.retrievalSummary.fragmentCount}</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] px-4 py-3 text-sm">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">Top Score</p>
+              <p className="mt-2 text-lg font-semibold">{result.retrievalSummary.topScore.toFixed(2)}</p>
+            </div>
+          </div>
+
           <div>
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Answer</p>
             <pre className="mt-3 text-sm leading-7 text-[var(--ink)]">{result.answerMd}</pre>
@@ -65,7 +107,12 @@ export function ResearchForm() {
             <ul className="mt-3 space-y-2">
               {result.citations.map((citation) => (
                 <li key={`${citation.refId}-${citation.excerpt}`} className="rounded-2xl border border-[var(--line)] px-4 py-3 text-sm">
-                  <strong>{citation.refId}</strong>
+                  <div className="flex items-center justify-between gap-3">
+                    <strong>{citation.refId}</strong>
+                    <span className="text-xs uppercase tracking-[0.16em] text-[var(--muted)]">
+                      {citation.kind} · {citation.score.toFixed(2)}
+                    </span>
+                  </div>
                   <p className="mt-1 text-[var(--muted)]">{citation.excerpt}</p>
                 </li>
               ))}

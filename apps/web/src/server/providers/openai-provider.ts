@@ -184,7 +184,7 @@ export class OpenAIProvider implements ModelProvider {
       answerMd?: unknown;
       citations?: unknown;
     }>(
-      "Answer only from the provided evidence. If the evidence is insufficient, say so explicitly. Return markdown in answerMd and a citations array with refId, kind, excerpt, score.",
+      "Answer only from the provided evidence. If the evidence appears incomplete or conflicting, say so explicitly and keep the answer conservative. Return markdown in answerMd and a citations array with refId, kind, excerpt, score.",
       input
     );
 
