@@ -4,6 +4,7 @@ import path from "node:path";
 
 import type { ModelProvider } from "@/server/providers/model-provider";
 import { createAppContext } from "@/server/context";
+import { wikiEdges, wikiNodes } from "@/server/db/schema";
 import { createBackupRun } from "@/server/services/backups";
 import { applyReviewAction, compileSource } from "@/server/services/compiler";
 import { createOutput } from "@/server/services/outputs";
@@ -11,6 +12,8 @@ import { createPassportSnapshot } from "@/server/services/passports";
 import { createPostcard } from "@/server/services/postcards";
 import { answerResearchQuery } from "@/server/services/research";
 import { createSourceImport, listSources } from "@/server/services/sources";
+import { syncWikiNodeFts } from "@/server/services/fts";
+import { createId } from "@/server/services/common";
 
 import { describe, expect, it } from "vitest";
 
@@ -176,5 +179,177 @@ describe("knowledge passport MVP flow", () => {
     expect(backupId).toMatch(/^backup_/);
     const backupFiles = await fs.readdir(path.join(dataDir, "backups"));
     expect(backupFiles.some((entry) => entry.endsWith(".zip"))).toBe(true);
+  });
+
+  it("deduplicates compile candidates against accepted nodes and attaches the source", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-dup-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    const existingNodeId = createId("node");
+    await context.db.insert(wikiNodes).values({
+      id: existingNodeId,
+      nodeType: "summary",
+      title: "AI Passport Notes / Summary",
+      summary: "已有知识节点",
+      bodyMd: "# AI Passport Notes\n\n已有知识节点正文",
+      status: "accepted",
+      sourceIdsJson: JSON.stringify(["src_existing"]),
+      tagsJson: JSON.stringify(["passport"]),
+      projectKey: "passport-mvp",
+      privacyLevel: "L1_LOCAL_AI",
+      embeddingJson: JSON.stringify((await context.provider.embedText(["AI Passport Notes / Summary\n已有知识节点"]))[0]),
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
+    });
+    syncWikiNodeFts(context, {
+      id: existingNodeId,
+      title: "AI Passport Notes / Summary",
+      summary: "已有知识节点",
+      bodyMd: "# AI Passport Notes\n\n已有知识节点正文"
+    });
+
+    const importResult = await createSourceImport(context, {
+      payload: {
+        type: "markdown",
+        title: "AI Passport Notes",
+        privacyLevel: "L1_LOCAL_AI",
+        projectKey: "passport-mvp",
+        textContent: "这是一个重复主题的新来源。",
+        tags: ["passport", "knowledge"],
+        metadata: {}
+      }
+    });
+
+    const inserted = await compileSource(context, importResult.sourceId);
+    expect(inserted).toHaveLength(0);
+
+    const updatedNode = await context.db.query.wikiNodes.findFirst({
+      where: (table, { eq }) => eq(table.id, existingNodeId)
+    });
+    expect(updatedNode).toBeTruthy();
+    expect(updatedNode?.sourceIdsJson).toContain(importResult.sourceId);
+
+    const sourceRows = await listSources(context);
+    expect(sourceRows[0]?.status).toBe("confirmed");
+  });
+
+  it("merges pending nodes into an existing target and redirects edges", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-merge-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    const targetNodeId = createId("node");
+    const pendingNodeId = createId("node");
+    const relatedNodeId = createId("node");
+
+    await context.db.insert(wikiNodes).values([
+      {
+        id: targetNodeId,
+        nodeType: "theme",
+        title: "Knowledge Passport",
+        summary: "主节点",
+        bodyMd: "主节点正文",
+        status: "accepted",
+        sourceIdsJson: JSON.stringify(["src_a"]),
+        tagsJson: JSON.stringify(["passport"]),
+        projectKey: "passport-mvp",
+        privacyLevel: "L1_LOCAL_AI",
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport\n主节点正文"]))[0]),
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: pendingNodeId,
+        nodeType: "theme",
+        title: "Knowledge Passport Candidate",
+        summary: "待合并节点",
+        bodyMd: "待合并节点正文",
+        status: "pending_review",
+        sourceIdsJson: JSON.stringify(["src_b"]),
+        tagsJson: JSON.stringify(["knowledge"]),
+        projectKey: "passport-mvp",
+        privacyLevel: "L1_LOCAL_AI",
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Knowledge Passport Candidate\n待合并节点正文"]))[0]),
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: relatedNodeId,
+        nodeType: "concept",
+        title: "Evidence Chain",
+        summary: "关联节点",
+        bodyMd: "关联节点正文",
+        status: "accepted",
+        sourceIdsJson: JSON.stringify(["src_c"]),
+        tagsJson: JSON.stringify(["evidence"]),
+        projectKey: "passport-mvp",
+        privacyLevel: "L1_LOCAL_AI",
+        embeddingJson: JSON.stringify((await context.provider.embedText(["Evidence Chain\n关联节点正文"]))[0]),
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      }
+    ]);
+
+    syncWikiNodeFts(context, { id: targetNodeId, title: "Knowledge Passport", summary: "主节点", bodyMd: "主节点正文" });
+    syncWikiNodeFts(context, { id: pendingNodeId, title: "Knowledge Passport Candidate", summary: "待合并节点", bodyMd: "待合并节点正文" });
+    syncWikiNodeFts(context, { id: relatedNodeId, title: "Evidence Chain", summary: "关联节点", bodyMd: "关联节点正文" });
+
+    await context.db.insert(wikiEdges).values([
+      {
+        id: createId("edge"),
+        fromNodeId: pendingNodeId,
+        toNodeId: relatedNodeId,
+        relationType: "related",
+        weight: 0.8,
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: createId("edge"),
+        fromNodeId: relatedNodeId,
+        toNodeId: pendingNodeId,
+        relationType: "related",
+        weight: 0.8,
+        createdAt: new Date().toISOString()
+      }
+    ]);
+
+    await applyReviewAction(context, {
+      nodeId: pendingNodeId,
+      action: "merge",
+      mergedIntoNodeId: targetNodeId,
+      note: "merge into accepted target"
+    });
+
+    const mergedTarget = await context.db.query.wikiNodes.findFirst({
+      where: (table, { eq }) => eq(table.id, targetNodeId)
+    });
+    const mergedNode = await context.db.query.wikiNodes.findFirst({
+      where: (table, { eq }) => eq(table.id, pendingNodeId)
+    });
+    const redirectedEdges = await context.db.query.wikiEdges.findMany();
+
+    expect(mergedTarget?.sourceIdsJson).toContain("src_b");
+    expect(mergedTarget?.tagsJson).toContain("knowledge");
+    expect(mergedTarget?.bodyMd).toContain("Merged Candidate");
+    expect(mergedNode?.status).toBe("merged");
+    expect(redirectedEdges.some((edge) => edge.fromNodeId === targetNodeId && edge.toNodeId === relatedNodeId)).toBe(true);
+    expect(redirectedEdges.some((edge) => edge.fromNodeId === relatedNodeId && edge.toNodeId === targetNodeId)).toBe(true);
   });
 });
