@@ -15,6 +15,7 @@ export function VisaForm(props: {
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
+        const form = event.currentTarget;
         const formData = new FormData(event.currentTarget);
         const expiresAtRaw = String(formData.get("expiresAt") ?? "").trim();
 
@@ -37,7 +38,11 @@ export function VisaForm(props: {
                 .filter(Boolean),
               privacyFloor: formData.get("privacyFloor"),
               audienceLabel: formData.get("audienceLabel"),
+              description: formData.get("description") || "",
+              purpose: formData.get("purpose") || "",
               expiresAt: expiresAtRaw ? new Date(expiresAtRaw).toISOString() : undefined,
+              maxAccessCount: formData.get("maxAccessCount") ? Number(formData.get("maxAccessCount")) : undefined,
+              maxMachineDownloads: formData.get("maxMachineDownloads") ? Number(formData.get("maxMachineDownloads")) : undefined,
               allowMachineDownload: formData.get("allowMachineDownload") === "on",
               redaction: {
                 hideOriginUrls: formData.get("hideOriginUrls") === "on",
@@ -49,6 +54,7 @@ export function VisaForm(props: {
           const payload = await response.json();
           if (response.ok) {
             setMessage(`Visa created: ${payload.visaId}`);
+            form.reset();
             router.refresh();
             return;
           }
@@ -89,6 +95,22 @@ export function VisaForm(props: {
         <label className="space-y-2 text-sm">
           <span>Expires At</span>
           <input name="expiresAt" type="datetime-local" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+        </label>
+        <label className="space-y-2 text-sm md:col-span-2">
+          <span>Description</span>
+          <textarea name="description" rows={3} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+        </label>
+        <label className="space-y-2 text-sm md:col-span-2">
+          <span>Purpose</span>
+          <textarea name="purpose" rows={2} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+        </label>
+        <label className="space-y-2 text-sm">
+          <span>Max Human Views</span>
+          <input name="maxAccessCount" type="number" min={1} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+        </label>
+        <label className="space-y-2 text-sm">
+          <span>Max Machine Downloads</span>
+          <input name="maxMachineDownloads" type="number" min={1} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
         </label>
       </div>
 

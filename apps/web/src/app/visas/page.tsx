@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
-import { SectionCard, StatusBadge } from "@/components/ui";
+import { SectionCard, StatTile, StatusBadge } from "@/components/ui";
 import { VisaActions } from "@/components/visa-actions";
 import { VisaForm } from "@/components/visa-form";
 import { getAppContext } from "@/server/context";
@@ -23,12 +23,26 @@ export default async function VisasPage() {
     })
   ]);
 
+  const summary = {
+    total: visas.length,
+    active: visas.filter((visa) => visa.status === "active").length,
+    pendingFeedback: visas.reduce((sum, visa) => sum + visa.pendingFeedbackCount, 0),
+    machineEnabled: visas.filter((visa) => visa.allowMachineDownload).length
+  };
+
   return (
-    <PageShell currentPath="/visas" title="Visas" subtitle="Package passport, postcard, and accepted-node context into secret-link scenario bundles">
+    <PageShell currentPath="/visas" title="Visas" subtitle="Manage scenario bundles as a live sharing product with policies, access state, and lightweight flowback">
+      <section className="grid gap-4 md:grid-cols-4">
+        <StatTile label="Total Visas" value={summary.total} />
+        <StatTile label="Active Visas" value={summary.active} />
+        <StatTile label="Pending Feedback" value={summary.pendingFeedback} />
+        <StatTile label="Machine Enabled" value={summary.machineEnabled} />
+      </section>
+
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard
           title="Create Visa Bundle"
-          description="Create a read-only scenario bundle. Leave node and postcard IDs empty to inherit the selected passport snapshot."
+          description="Create a managed read-only scenario bundle with expiry, usage limits, redaction rules, and machine-download policy."
         >
           <VisaForm
             passports={passports.map((passport) => ({
@@ -38,7 +52,7 @@ export default async function VisasPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Issued Visas" description="Secret links are deterministic and can be copied again later without storing plaintext tokens.">
+        <SectionCard title="Issued Visas" description="Track current share state, access activity, and pending external flowback.">
           <div className="space-y-4">
             {visas.map((visa) => (
               <article key={visa.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -54,15 +68,28 @@ export default async function VisasPage() {
                   </div>
                 </div>
 
+                {visa.description ? <p className="mt-3 text-sm leading-6">{visa.description}</p> : null}
+                {visa.purpose ? <p className="mt-2 text-sm text-[var(--muted)]">Purpose: {visa.purpose}</p> : null}
+
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
                   <span className="rounded-full bg-black/5 px-3 py-1">audience {visa.audienceLabel}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">nodes {visa.includeNodeIds.length}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">cards {visa.includePostcardIds.length}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">{visa.expiresAt ? `expires ${visa.expiresAt}` : "no expiry"}</span>
+                  <span className="rounded-full bg-black/5 px-3 py-1">
+                    {visa.maxAccessCount ? `views ${visa.accessCount}/${visa.maxAccessCount}` : `views ${visa.accessCount}`}
+                  </span>
+                  <span className="rounded-full bg-black/5 px-3 py-1">
+                    {visa.maxMachineDownloads
+                      ? `machine ${visa.machineDownloadCount}/${visa.maxMachineDownloads}`
+                      : `machine ${visa.machineDownloadCount}`}
+                  </span>
+                  <span className="rounded-full bg-black/5 px-3 py-1">feedback {visa.pendingFeedbackCount}</span>
                 </div>
 
                 <p className="mt-3 text-sm text-[var(--muted)]">
-                  Source passport: {visa.passportId ?? "direct selection"} · Last accessed: {visa.lastAccessedAt ?? "never"}
+                  Source passport: {visa.passportId ?? "direct selection"} · Last human access: {visa.lastAccessedAt ?? "never"} · Last machine access:{" "}
+                  {visa.lastMachineAccessedAt ?? "never"}
                 </p>
 
                 <div className="mt-4">

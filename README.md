@@ -19,7 +19,7 @@ The public repository currently implements a single-user Web system with this en
 - Hybrid retrieval with FTS5 + embeddings
 - Knowledge compilation, review queue, research Q&A, and output flowback
 - Postcard generation, passport snapshot generation, and backup zip exports
-- Visa bundle generation, secret-link sharing, and machine-manifest downloads
+- Visa bundle generation, managed secret-link sharing, machine-manifest downloads, and lightweight external flowback
 - Fragment inspection, health diagnostics, audit history, and visual knowledge summaries
 - Next.js Web UI and a local worker
 
@@ -188,6 +188,7 @@ Next major directions include:
 - first-class claim objects
 - explicit authorization grants and policy records
 - durable compilation-run history
+- managed sharing analytics and feedback review
 - future scenario bundles and agent governance
 
 For the full product-system framing, see [docs/project-blueprint.md](./docs/project-blueprint.md).
