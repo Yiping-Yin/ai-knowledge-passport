@@ -17,3 +17,9 @@ export function syncWikiNodeFts(context: AppContext, node: { id: string; title: 
     .prepare("insert into wiki_nodes_fts(node_id, title, summary, body) values(?, ?, ?, ?)")
     .run(node.id, node.title, node.summary, node.bodyMd);
 }
+
+export function deleteWikiNodeFts(context: AppContext, nodeId: string) {
+  context.sqlite
+    .prepare("delete from wiki_nodes_fts where node_id = ?")
+    .run(nodeId);
+}

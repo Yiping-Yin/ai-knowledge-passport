@@ -23,17 +23,17 @@ function conflictCueCount(text: string) {
 
 function summarizeWeakEvidence(question: string, evidenceCount: number) {
   return [
-    "## 结论",
-    "当前本地证据不足，暂时不能对这个问题给出可靠结论。",
+    "## Conclusion",
+    "Current local evidence is insufficient to support a reliable answer.",
     "",
-    "## 原因",
-    `- 命中的高质量证据数量不足，当前仅整理出 ${evidenceCount} 条可参考证据`,
-    "- 现有材料与问题的语义重合度偏低，继续回答会放大幻觉风险",
+    "## Why",
+    `- Only ${evidenceCount} high-signal evidence item(s) were selected from the local corpus`,
+    "- The overlap between the available material and the question is too weak to justify a confident answer",
     "",
-    "## 建议下一步",
-    "- 缩小问题范围，指定项目或主题后重试",
-    "- 导入更直接相关的原始材料",
-    "- 先在知识 IDE 中确认是否已有对应主题节点"
+    "## Suggested Next Step",
+    "- Narrow the question and retry with a specific project or topic",
+    "- Import more directly relevant source material",
+    "- Check in the Knowledge view whether a matching topic node already exists"
   ].join("\n");
 }
 
@@ -97,21 +97,21 @@ export async function answerResearchQuery(context: AppContext, query: ResearchQu
   if (selectedEvidence.length < 2 || topScore < 0.18 || (comparisonMode && uniqueEvidenceRefs.size < 2)) {
     warnings.push({
       code: "insufficient_evidence",
-      message: "当前命中的本地证据不足，回答应被视为拒答或待补材料。"
+      message: "The currently retrieved local evidence is too weak, so the answer should be treated as a refusal or a request for more material."
     });
   }
 
   if (comparisonMode && uniqueEvidenceRefs.size < 3) {
     warnings.push({
       code: "narrow_coverage",
-      message: "这是一个比较类问题，但当前覆盖到的独立证据源仍然偏少。"
+      message: "This is a comparison-style question, but the current evidence set still covers too few independent references."
     });
   }
 
   if (selectedEvidence.filter((entry) => conflictCueCount(entry.text) > 0).length >= 2) {
     warnings.push({
       code: "conflicting_evidence",
-      message: "命中的证据中存在潜在冲突或不同表述，结论应保守处理。"
+      message: "The matched evidence includes potentially conflicting or divergent statements, so the conclusion should stay conservative."
     });
   }
 

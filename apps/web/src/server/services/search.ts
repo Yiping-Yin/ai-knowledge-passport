@@ -14,6 +14,15 @@ function tokenizeQuery(query: string) {
     .filter((token) => token.length >= 2);
 }
 
+function buildFtsQuery(query: string) {
+  const tokens = tokenizeQuery(query);
+  if (!tokens.length) {
+    return "";
+  }
+
+  return tokens.map((token) => `"${token.replace(/"/g, '""')}"`).join(" OR ");
+}
+
 function lexicalScore(text: string, queryTokens: string[]) {
   if (!queryTokens.length) {
     return 0;
@@ -62,7 +71,8 @@ export async function searchKnowledge(
 ): Promise<SearchKnowledgeResult> {
   const limit = query.limit ?? 8;
   const queryTokens = tokenizeQuery(query.q);
-  const fragmentRows = context.sqlite
+  const ftsQuery = buildFtsQuery(query.q);
+  const fragmentStatement = context.sqlite
     .prepare(
       `
       select fragment_id as id, source_id as sourceId, content as text
@@ -70,10 +80,9 @@ export async function searchKnowledge(
       where source_fragments_fts match ?
       limit ?
     `
-    )
-    .all(query.q, limit * 2) as Array<{ id: string; sourceId: string; text: string }>;
+    );
 
-  const nodeRows = context.sqlite
+  const nodeStatement = context.sqlite
     .prepare(
       `
       select node_id as id, title, summary, body
@@ -81,8 +90,15 @@ export async function searchKnowledge(
       where wiki_nodes_fts match ?
       limit ?
     `
-    )
-    .all(query.q, limit * 2) as Array<{ id: string; title: string; summary: string; body: string }>;
+    );
+
+  const fragmentRows = ftsQuery
+    ? (fragmentStatement.all(ftsQuery, limit * 2) as Array<{ id: string; sourceId: string; text: string }>)
+    : [];
+
+  const nodeRows = ftsQuery
+    ? (nodeStatement.all(ftsQuery, limit * 2) as Array<{ id: string; title: string; summary: string; body: string }>)
+    : [];
 
   const fallbackFragments = fragmentRows.length === 0
     ? await context.db.query.sourceFragments.findMany({

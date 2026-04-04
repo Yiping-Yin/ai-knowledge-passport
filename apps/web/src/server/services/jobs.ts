@@ -3,7 +3,7 @@ import { and, asc, eq } from "drizzle-orm";
 import type { JobType } from "@ai-knowledge-passport/shared";
 
 import type { AppContext } from "@/server/context";
-import { jobs } from "@/server/db/schema";
+import { jobs, sources } from "@/server/db/schema";
 
 import { createBackupRun } from "./backups";
 import { compileSource } from "./compiler";
@@ -65,6 +65,14 @@ async function performJob(context: AppContext, jobId: string) {
 }
 
 export async function runJob(context: AppContext, jobId: string) {
+  const job = await context.db.query.jobs.findFirst({
+    where: eq(jobs.id, jobId)
+  });
+
+  if (!job) {
+    throw new Error(`Job ${jobId} not found`);
+  }
+
   await context.db
     .update(jobs)
     .set({
@@ -72,6 +80,16 @@ export async function runJob(context: AppContext, jobId: string) {
       startedAt: nowIso()
     })
     .where(eq(jobs.id, jobId));
+
+  if (job.sourceId && job.jobType === "compile_source") {
+    await context.db
+      .update(sources)
+      .set({
+        status: "compiling",
+        errorMessage: null
+      })
+      .where(eq(sources.id, job.sourceId));
+  }
 
   try {
     await performJob(context, jobId);
@@ -96,6 +114,16 @@ export async function runJob(context: AppContext, jobId: string) {
         errorMessage: message
       })
       .where(eq(jobs.id, jobId));
+
+    if (job.sourceId) {
+      await context.db
+        .update(sources)
+        .set({
+          status: "failed",
+          errorMessage: message
+        })
+        .where(eq(sources.id, job.sourceId));
+    }
     throw error;
   }
 }
@@ -107,9 +135,19 @@ export async function drainQueue(context: AppContext, limit = 5) {
     limit
   });
 
+  const failures: Array<{ jobId: string; message: string }> = [];
   for (const job of pending) {
-    await runJob(context, job.id);
+    try {
+      await runJob(context, job.id);
+    } catch (error) {
+      failures.push({
+        jobId: job.id,
+        message: error instanceof Error ? error.message : "Unknown worker error"
+      });
+    }
   }
+
+  return failures;
 }
 
 export async function maybeRunInlineJobs(context: AppContext) {
