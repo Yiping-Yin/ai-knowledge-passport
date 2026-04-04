@@ -2,7 +2,7 @@
 
 This project is a local-first personal knowledge compiler. It continuously compiles raw materials into a traceable personal wiki, then organizes selected and authorized parts into knowledge postcards, knowledge passports, and future scenario-specific visa bundles.
 
-The public repository currently implements a single-user Web MVP with this end-to-end loop:
+The public repository currently implements a single-user Web system with this end-to-end loop:
 
 `import -> incremental compile -> local Q&A -> formal output -> flowback -> postcards -> lightweight passport -> local backup`
 
@@ -19,7 +19,25 @@ The public repository currently implements a single-user Web MVP with this end-t
 - Hybrid retrieval with FTS5 + embeddings
 - Knowledge compilation, review queue, research Q&A, and output flowback
 - Postcard generation, passport snapshot generation, and backup zip exports
+- Fragment inspection, health diagnostics, audit history, and visual knowledge summaries
 - Next.js Web UI and a local worker
+
+## Current App Surfaces
+
+The current app shell includes:
+
+- `Dashboard`
+- `Inbox`
+- `Knowledge`
+- `Review Queue`
+- `Research`
+- `Outputs`
+- `Postcards`
+- `Health Center`
+- `Visuals`
+- `Audit Log`
+- `Passport & Backup`
+- `Fragments`
 
 ## Architecture
 
@@ -145,22 +163,27 @@ npm run build
 
 ## Roadmap
 
-The GitHub repository already includes an `MVP` milestone and the first batch of issues split by subsystem:
+The GitHub repository now contains:
 
-- `foundation`
-- `ingestion`
-- `compiler`
-- `research`
-- `postcard-passport`
-- `backup`
+- a closed `MVP` milestone that tracks the first shipped product baseline
+- an open `V1` milestone for the next structural system layers
+
+The current V1 tracking issues focus on:
+
+- fragment-first evidence modeling
+- explicit claim modeling
+- grant-based authorization records
+- compilation run history and diffs
+
+There is also an explicit maintenance issue for the remaining red dependency upgrades.
 
 Next major directions include:
 
-- More stable ingestion and parsing
-- Higher-quality incremental compilation and review
-- Stronger citation, comparison, and conflict analysis
-- Better outward-facing postcard and passport outputs
-- More reliable backup and restore workflows
+- first-class fragment visibility and traceability
+- first-class claim objects
+- explicit authorization grants and policy records
+- durable compilation-run history
+- future scenario bundles and agent governance
 
 For the full product-system framing, see [docs/project-blueprint.md](./docs/project-blueprint.md).
 

@@ -59,6 +59,20 @@ export const jobs = sqliteTable("jobs", {
   finishedAt: text("finished_at")
 });
 
+export const compilationRuns = sqliteTable("compilation_runs", {
+  id: text("id").primaryKey(),
+  sourceId: text("source_id").references(() => sources.id, { onDelete: "set null" }),
+  providerName: text("provider_name").notNull(),
+  status: text("status").notNull(),
+  inputSummaryJson: text("input_summary_json").notNull().default("{}"),
+  outputNodeIdsJson: text("output_node_ids_json").notNull().default("[]"),
+  attachedNodeIdsJson: text("attached_node_ids_json").notNull().default("[]"),
+  diffSummaryJson: text("diff_summary_json").notNull().default("{}"),
+  errorMessage: text("error_message"),
+  startedAt: text("started_at").notNull(),
+  finishedAt: text("finished_at")
+});
+
 export const wikiNodes = sqliteTable("wiki_nodes", {
   id: text("id").primaryKey(),
   nodeType: text("node_type").notNull(),

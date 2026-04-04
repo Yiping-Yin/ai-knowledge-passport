@@ -67,6 +67,20 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       finished_at text
     );
 
+    create table if not exists compilation_runs (
+      id text primary key,
+      source_id text references sources(id) on delete set null,
+      provider_name text not null,
+      status text not null,
+      input_summary_json text not null default '{}',
+      output_node_ids_json text not null default '[]',
+      attached_node_ids_json text not null default '[]',
+      diff_summary_json text not null default '{}',
+      error_message text,
+      started_at text not null,
+      finished_at text
+    );
+
     create table if not exists wiki_nodes (
       id text primary key,
       node_type text not null,
