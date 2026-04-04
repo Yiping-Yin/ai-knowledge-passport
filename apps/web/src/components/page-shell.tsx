@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Activity, BadgeCheck, BookOpenText, Bot, Database, FileSearch, Files, HeartPulse, Key, LayoutDashboard, LibraryBig, ScrollText, Shield, Waypoints, Workflow } from "lucide-react";
+import { Activity, BadgeCheck, BookOpenText, Bot, Database, Download, FileSearch, Files, HeartPulse, Key, LayoutDashboard, LibraryBig, ScrollText, Shield, Waypoints, Workflow } from "lucide-react";
 import clsx from "clsx";
 
 const navigation = [
@@ -14,6 +14,7 @@ const navigation = [
   { href: "/postcards", label: "Postcards", icon: Activity },
   { href: "/visas", label: "Visas", icon: Key },
   { href: "/avatars", label: "Avatars", icon: Bot },
+  { href: "/exports", label: "Exports", icon: Download },
   { href: "/grants", label: "Grants", icon: Key },
   { href: "/compilation-runs", label: "Compilation Runs", icon: Workflow },
   { href: "/health", label: "Health Center", icon: HeartPulse },

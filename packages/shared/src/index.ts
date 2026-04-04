@@ -123,6 +123,11 @@ export const avatarSimulationStatuses = [
   "escalated"
 ] as const;
 
+export const exportPackageStatuses = [
+  "succeeded",
+  "failed"
+] as const;
+
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
 export const sourceStatusSchema = z.enum(sourceStatuses);
@@ -141,6 +146,7 @@ export const visaFeedbackTypeSchema = z.enum(visaFeedbackTypes);
 export const visaFeedbackStatusSchema = z.enum(visaFeedbackStatuses);
 export const avatarStatusSchema = z.enum(avatarStatuses);
 export const avatarSimulationStatusSchema = z.enum(avatarSimulationStatuses);
+export const exportPackageStatusSchema = z.enum(exportPackageStatuses);
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
@@ -275,6 +281,12 @@ export const avatarStatusUpdateSchema = z.object({
   status: avatarStatusSchema
 });
 
+export const agentPackExportCreateSchema = z.object({
+  agentPackId: z.string().min(1),
+  avatarProfileId: z.string().optional(),
+  includeAvatarProfile: z.boolean().default(false)
+});
+
 export const backupCreateSchema = z.object({
   note: z.string().default("manual_backup")
 });
@@ -302,6 +314,7 @@ export type VisaFeedbackType = z.infer<typeof visaFeedbackTypeSchema>;
 export type VisaFeedbackStatus = z.infer<typeof visaFeedbackStatusSchema>;
 export type AvatarStatus = z.infer<typeof avatarStatusSchema>;
 export type AvatarSimulationStatus = z.infer<typeof avatarSimulationStatusSchema>;
+export type ExportPackageStatus = z.infer<typeof exportPackageStatusSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
@@ -316,6 +329,7 @@ export type AvatarEscalationRules = z.infer<typeof avatarEscalationRulesSchema>;
 export type AvatarProfileCreateInput = z.infer<typeof avatarProfileCreateSchema>;
 export type AvatarProfileUpdateInput = z.infer<typeof avatarProfileUpdateSchema>;
 export type AvatarSimulationInput = z.infer<typeof avatarSimulationInputSchema>;
+export type AgentPackExportCreateInput = z.infer<typeof agentPackExportCreateSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
 
@@ -419,4 +433,26 @@ export type AvatarSimulationSession = {
   citations: AvatarSimulationCitation[];
   reason: string;
   createdAt: string;
+};
+
+export type ExportPackageSummary = {
+  id: string;
+  objectType: "agent_pack_snapshot";
+  objectId: string;
+  title: string;
+  formatVersion: string;
+  filePath: string;
+  bundleSha256: string;
+  status: ExportPackageStatus;
+  counts: {
+    nodeCount: number;
+    postcardCount: number;
+    citationCount: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ExportPackageSnapshot = ExportPackageSummary & {
+  manifest: Record<string, unknown>;
 };

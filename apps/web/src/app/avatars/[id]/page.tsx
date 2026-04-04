@@ -99,6 +99,11 @@ export default async function AvatarDetailPage(props: { params: Promise<{ id: st
               </div>
             </div>
             <AvatarStatusToggle avatarId={avatar.id} status={avatar.status} />
+            <div>
+              <Link href={`/exports?agentPackId=${avatar.activePackId}&avatarProfileId=${avatar.id}`} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+                Export Cross-AI Bundle
+              </Link>
+            </div>
           </div>
         </SectionCard>
 

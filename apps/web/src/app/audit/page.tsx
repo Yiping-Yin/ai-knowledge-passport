@@ -18,7 +18,8 @@ const filterLinks = [
   { label: "Visa Feedback", href: "/audit?objectType=visa_feedback" },
   { label: "Avatar Profiles", href: "/audit?objectType=avatar_profile" },
   { label: "Avatar Sessions", href: "/audit?objectType=avatar_simulation_session" },
-  { label: "Agent Packs", href: "/audit?objectType=agent_pack_snapshot" }
+  { label: "Agent Packs", href: "/audit?objectType=agent_pack_snapshot" },
+  { label: "Export Packages", href: "/audit?objectType=export_package" }
 ];
 
 export default async function AuditPage(props: {
