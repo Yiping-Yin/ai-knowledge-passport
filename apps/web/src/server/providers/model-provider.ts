@@ -75,4 +75,14 @@ export interface ModelProvider {
     humanMarkdown: string;
     machineManifest: Record<string, unknown>;
   }>;
+  generateAvatarReply(input: {
+    avatarTitle: string;
+    intro: string;
+    toneRules: string[];
+    question: string;
+    evidence: Array<{ refId: string; title: string; text: string }>;
+  }): Promise<{
+    answerMd: string;
+    citations: ProviderCitation[];
+  }>;
 }

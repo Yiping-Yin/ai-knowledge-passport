@@ -90,6 +90,18 @@ class FakeProvider implements ModelProvider {
       }
     };
   }
+
+  async generateAvatarReply(input: Parameters<ModelProvider["generateAvatarReply"]>[0]) {
+    return {
+      answerMd: `Avatar reply grounded in pack evidence: ${input.evidence[0]?.text ?? ""}`,
+      citations: input.evidence.slice(0, 2).map((entry, index) => ({
+        refId: entry.refId,
+        kind: "wiki_node" as const,
+        excerpt: entry.text.slice(0, 80),
+        score: 0.9 - index * 0.1
+      }))
+    };
+  }
 }
 
 describe("knowledge passport MVP flow", () => {

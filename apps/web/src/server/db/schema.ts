@@ -200,6 +200,43 @@ export const visaFeedbackQueue = sqliteTable("visa_feedback_queue", {
   updatedAt: text("updated_at").notNull()
 });
 
+export const agentPackSnapshots = sqliteTable("agent_pack_snapshots", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  sourcePassportId: text("source_passport_id").references(() => passportSnapshots.id, { onDelete: "set null" }),
+  sourceVisaId: text("source_visa_id").references(() => visaBundles.id, { onDelete: "set null" }),
+  humanMarkdown: text("human_markdown").notNull(),
+  machineManifestJson: text("machine_manifest_json").notNull(),
+  includeNodeIdsJson: text("include_node_ids_json").notNull().default("[]"),
+  includePostcardIdsJson: text("include_postcard_ids_json").notNull().default("[]"),
+  privacyFloor: text("privacy_floor").notNull(),
+  createdAt: text("created_at").notNull()
+});
+
+export const avatarProfiles = sqliteTable("avatar_profiles", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  activePackId: text("active_pack_id").notNull().references(() => agentPackSnapshots.id, { onDelete: "restrict" }),
+  intro: text("intro").notNull().default(""),
+  toneRulesJson: text("tone_rules_json").notNull().default("[]"),
+  forbiddenTopicsJson: text("forbidden_topics_json").notNull().default("[]"),
+  escalationRulesJson: text("escalation_rules_json").notNull().default("{}"),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const avatarSimulationSessions = sqliteTable("avatar_simulation_sessions", {
+  id: text("id").primaryKey(),
+  avatarProfileId: text("avatar_profile_id").notNull().references(() => avatarProfiles.id, { onDelete: "cascade" }),
+  question: text("question").notNull(),
+  resultStatus: text("result_status").notNull(),
+  answerMd: text("answer_md").notNull(),
+  citationsJson: text("citations_json").notNull().default("[]"),
+  reason: text("reason").notNull().default(""),
+  createdAt: text("created_at").notNull()
+});
+
 export const researchSessions = sqliteTable("research_sessions", {
   id: text("id").primaryKey(),
   question: text("question").notNull(),

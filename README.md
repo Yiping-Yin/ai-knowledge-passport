@@ -20,6 +20,7 @@ The public repository currently implements a single-user Web system with this en
 - Knowledge compilation, review queue, research Q&A, and output flowback
 - Postcard generation, passport snapshot generation, and backup zip exports
 - Visa bundle generation, managed secret-link sharing, machine-manifest downloads, and lightweight external flowback
+- Agent pack snapshots, avatar profiles, and governed internal-only simulation sessions
 - Fragment inspection, health diagnostics, audit history, and visual knowledge summaries
 - Next.js Web UI and a local worker
 
@@ -39,6 +40,7 @@ The current app shell includes:
 - `Audit Log`
 - `Passport & Backup`
 - `Visas`
+- `Avatars`
 - `Fragments`
 
 ## Architecture

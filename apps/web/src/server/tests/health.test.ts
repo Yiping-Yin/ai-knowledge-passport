@@ -19,6 +19,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
 describe("health report", () => {

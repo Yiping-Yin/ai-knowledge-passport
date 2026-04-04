@@ -112,6 +112,17 @@ export const visaFeedbackStatuses = [
   "ignored"
 ] as const;
 
+export const avatarStatuses = [
+  "active",
+  "paused"
+] as const;
+
+export const avatarSimulationStatuses = [
+  "answered",
+  "refused",
+  "escalated"
+] as const;
+
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
 export const sourceStatusSchema = z.enum(sourceStatuses);
@@ -128,6 +139,8 @@ export const visaAccessTypeSchema = z.enum(visaAccessTypes);
 export const visaAccessResultSchema = z.enum(visaAccessResults);
 export const visaFeedbackTypeSchema = z.enum(visaFeedbackTypes);
 export const visaFeedbackStatusSchema = z.enum(visaFeedbackStatuses);
+export const avatarStatusSchema = z.enum(avatarStatuses);
+export const avatarSimulationStatusSchema = z.enum(avatarSimulationStatuses);
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
@@ -217,6 +230,51 @@ export const visaFeedbackReviewSchema = z.object({
   status: visaFeedbackStatusSchema
 });
 
+export const agentPackCreateSchema = z.object({
+  title: z.string().min(1),
+  passportId: z.string().optional(),
+  visaId: z.string().optional(),
+  includeNodeIds: z.array(z.string()).default([]),
+  includePostcardIds: z.array(z.string()).default([]),
+  privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI")
+});
+
+export const avatarEscalationRulesSchema = z.object({
+  escalateOnForbiddenTopic: z.boolean().default(true),
+  escalateOnInsufficientEvidence: z.boolean().default(true),
+  escalateOnOutOfScope: z.boolean().default(true)
+});
+
+export const avatarProfileCreateSchema = z.object({
+  title: z.string().min(1),
+  activePackId: z.string().min(1),
+  intro: z.string().default(""),
+  toneRules: z.array(z.string()).default([]),
+  forbiddenTopics: z.array(z.string()).default([]),
+  escalationRules: avatarEscalationRulesSchema.default({
+    escalateOnForbiddenTopic: true,
+    escalateOnInsufficientEvidence: true,
+    escalateOnOutOfScope: true
+  }),
+  status: avatarStatusSchema.default("active")
+});
+
+export const avatarProfileUpdateSchema = z.object({
+  activePackId: z.string().min(1).optional(),
+  intro: z.string().optional(),
+  toneRules: z.array(z.string()).optional(),
+  forbiddenTopics: z.array(z.string()).optional(),
+  escalationRules: avatarEscalationRulesSchema.optional()
+});
+
+export const avatarSimulationInputSchema = z.object({
+  question: z.string().min(1)
+});
+
+export const avatarStatusUpdateSchema = z.object({
+  status: avatarStatusSchema
+});
+
 export const backupCreateSchema = z.object({
   note: z.string().default("manual_backup")
 });
@@ -242,6 +300,8 @@ export type VisaAccessType = z.infer<typeof visaAccessTypeSchema>;
 export type VisaAccessResult = z.infer<typeof visaAccessResultSchema>;
 export type VisaFeedbackType = z.infer<typeof visaFeedbackTypeSchema>;
 export type VisaFeedbackStatus = z.infer<typeof visaFeedbackStatusSchema>;
+export type AvatarStatus = z.infer<typeof avatarStatusSchema>;
+export type AvatarSimulationStatus = z.infer<typeof avatarSimulationStatusSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
@@ -251,6 +311,11 @@ export type VisaRedactionConfig = z.infer<typeof visaRedactionSchema>;
 export type VisaBundleCreateInput = z.infer<typeof visaBundleCreateSchema>;
 export type VisaFeedbackCreateInput = z.infer<typeof visaFeedbackCreateSchema>;
 export type VisaFeedbackReviewInput = z.infer<typeof visaFeedbackReviewSchema>;
+export type AgentPackCreateInput = z.infer<typeof agentPackCreateSchema>;
+export type AvatarEscalationRules = z.infer<typeof avatarEscalationRulesSchema>;
+export type AvatarProfileCreateInput = z.infer<typeof avatarProfileCreateSchema>;
+export type AvatarProfileUpdateInput = z.infer<typeof avatarProfileUpdateSchema>;
+export type AvatarSimulationInput = z.infer<typeof avatarSimulationInputSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
 
@@ -307,4 +372,51 @@ export type VisaFeedbackQueueItem = {
   status: VisaFeedbackStatus;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AgentPackSummary = {
+  id: string;
+  title: string;
+  sourcePassportId: string | null;
+  sourceVisaId: string | null;
+  includeNodeIds: string[];
+  includePostcardIds: string[];
+  privacyFloor: PrivacyLevel;
+  createdAt: string;
+};
+
+export type AgentPackSnapshot = AgentPackSummary & {
+  humanMarkdown: string;
+  machineManifest: Record<string, unknown>;
+};
+
+export type AvatarProfileSummary = {
+  id: string;
+  title: string;
+  activePackId: string;
+  intro: string;
+  toneRules: string[];
+  forbiddenTopics: string[];
+  escalationRules: AvatarEscalationRules;
+  status: AvatarStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AvatarSimulationCitation = {
+  refId: string;
+  kind: "wiki_node";
+  excerpt: string;
+  score: number;
+};
+
+export type AvatarSimulationSession = {
+  id: string;
+  avatarProfileId: string;
+  question: string;
+  resultStatus: AvatarSimulationStatus;
+  answerMd: string;
+  citations: AvatarSimulationCitation[];
+  reason: string;
+  createdAt: string;
 };
