@@ -6,7 +6,7 @@ import type { AppContext } from "@/server/context";
 import { postcards, sources, wikiNodes } from "@/server/db/schema";
 
 import { writeAuditLog } from "./audit";
-import { createId, nowIso } from "./common";
+import { createId, nowIso, parseJsonArray } from "./common";
 
 export async function createPostcard(context: AppContext, input: PostcardCreateInput) {
   if (!input.relatedNodeIds.length) {
@@ -99,5 +99,10 @@ export async function createSuggestedPostcard(
 }
 
 export async function listPostcards(context: AppContext) {
-  return context.db.query.postcards.findMany();
+  const cards = await context.db.query.postcards.findMany();
+  return cards.map((card) => ({
+    ...card,
+    relatedNodeIds: parseJsonArray<string>(card.relatedNodeIdsJson),
+    relatedSourceIds: parseJsonArray<string>(card.relatedSourceIdsJson)
+  }));
 }

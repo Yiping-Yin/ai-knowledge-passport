@@ -141,7 +141,7 @@ export const postcardCreateSchema = z.object({
 });
 
 export const passportGenerateSchema = z.object({
-  title: z.string().default("知识护照"),
+  title: z.string().default("Knowledge Passport"),
   includeNodeIds: z.array(z.string()).default([]),
   includePostcardIds: z.array(z.string()).default([]),
   privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI")

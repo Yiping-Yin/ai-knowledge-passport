@@ -1,22 +1,22 @@
 # Contributing
 
-感谢你为 AI个人知识护照系统 做贡献。
+Thank you for contributing to AI Personal Knowledge Passport System.
 
-这个仓库当前处于公开 MVP 阶段，优先接受以下方向的贡献：
+This repository is currently in the public MVP phase. The highest-value contributions are:
 
-- 本地优先知识工作流
-- 多源导入与解析稳定性
-- 知识编译与审阅质量
-- 检索、引用与研究问答质量
-- 备份、恢复与知识主权相关能力
+- Local-first knowledge workflows
+- Stability of multi-source ingestion and parsing
+- Knowledge compilation and review quality
+- Retrieval, citation, and research-answer quality
+- Backup, restore, and knowledge-ownership capabilities
 
 ## Before You Start
 
-在开始实现前，请先：
+Before implementing anything, please:
 
-1. 查看已有 issue 和 `MVP` milestone。
-2. 如果是较大改动，先开 issue 或在已有 issue 下说明方案。
-3. 避免把产品方向性讨论直接变成大面积代码改写。
+1. Review existing issues and the `MVP` milestone.
+2. Open an issue first, or describe your plan in an existing issue for larger changes.
+3. Avoid turning product-direction debates into broad code rewrites without alignment.
 
 ## Local Setup
 
@@ -26,11 +26,11 @@ cp apps/web/.env.example apps/web/.env.local
 npm run dev:all
 ```
 
-默认入口：
+Default entry point:
 
 - Web UI: `http://localhost:3000/dashboard`
 
-常用校验：
+Common verification commands:
 
 ```bash
 npm run typecheck
@@ -40,43 +40,43 @@ npm run build
 
 ## Branching
 
-- 默认开发分支前缀：`codex/`
-- 提交前请确保当前分支不是 `main`
-- 如果你的改动对应 issue，建议在分支名中带 issue 语义，例如：`codex/ingestion-retries`
+- Default feature branch prefix: `codex/`
+- Make sure you are not working directly on `main`
+- If your change maps to an issue, prefer an issue-shaped branch name such as `codex/ingestion-retries`
 
 ## Pull Requests
 
-PR 应尽量保持单一目的，正文至少说明：
+Keep PRs focused on a single purpose. The description should at least explain:
 
-- 解决的问题
-- 采取的方案
-- 主要权衡
-- 验证方式
+- The problem being solved
+- The implementation approach
+- The main tradeoffs
+- The verification steps
 
-如果改动影响产品行为，请同时更新：
+If your change affects product behavior, update the following as needed:
 
 - `README.md`
-- 相关 API/环境变量说明
-- 测试或示例
+- Relevant API or environment variable documentation
+- Tests or examples
 
 ## Coding Expectations
 
-- 保持本地优先和可追溯原则，不要默认把用户数据发送到第三方服务
-- 所有正式输出应尽量保留来源回链与证据结构
-- 新增能力应优先通过服务层和共享 schema 暴露，而不是把逻辑散落进页面
-- 涉及导入、编译、问答、护照、备份的改动，应补最小回归测试
+- Preserve the local-first and traceability principles. Do not default to sending user data to third-party services.
+- Formal outputs should preserve source back-links and evidence structure whenever possible.
+- New capabilities should prefer the service layer and shared schemas over scattering logic directly into pages.
+- Changes affecting ingestion, compilation, Q&A, passports, or backups should include at least minimal regression coverage.
 
 ## Good First Contributions
 
-适合开源协作的起点通常包括：
+Good first contributions often include:
 
-- 修复导入报错和边界条件
-- 增加解析与编译测试
-- 优化中文界面文案和信息层次
-- 补文档、示例数据和开发脚本
+- Fixing ingestion failures and edge cases
+- Adding parsing and compilation tests
+- Improving English UI copy and information hierarchy
+- Expanding docs, sample data, and development scripts
 
 ## Security
 
-请不要在公开 issue 中披露安全漏洞细节。
+Do not disclose security vulnerabilities in public issues.
 
-参见 [SECURITY.md](./SECURITY.md)。
+See [SECURITY.md](./SECURITY.md).

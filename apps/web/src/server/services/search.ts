@@ -9,7 +9,7 @@ import { parseJsonArray } from "./common";
 function tokenizeQuery(query: string) {
   return query
     .toLowerCase()
-    .split(/[\s,.;:!?()[\]{}"'"'"'，。；：！？、]+/)
+    .split(/[\s,.;:!?()[\]{}"'，。；：！？、]+/)
     .map((token) => token.trim())
     .filter((token) => token.length >= 2);
 }
@@ -72,25 +72,20 @@ export async function searchKnowledge(
   const limit = query.limit ?? 8;
   const queryTokens = tokenizeQuery(query.q);
   const ftsQuery = buildFtsQuery(query.q);
-  const fragmentStatement = context.sqlite
-    .prepare(
-      `
-      select fragment_id as id, source_id as sourceId, content as text
-      from source_fragments_fts
-      where source_fragments_fts match ?
-      limit ?
-    `
-    );
 
-  const nodeStatement = context.sqlite
-    .prepare(
-      `
-      select node_id as id, title, summary, body
-      from wiki_nodes_fts
-      where wiki_nodes_fts match ?
-      limit ?
-    `
-    );
+  const fragmentStatement = context.sqlite.prepare(`
+    select fragment_id as id, source_id as sourceId, content as text
+    from source_fragments_fts
+    where source_fragments_fts match ?
+    limit ?
+  `);
+
+  const nodeStatement = context.sqlite.prepare(`
+    select node_id as id, title, summary, body
+    from wiki_nodes_fts
+    where wiki_nodes_fts match ?
+    limit ?
+  `);
 
   const fragmentRows = ftsQuery
     ? (fragmentStatement.all(ftsQuery, limit * 2) as Array<{ id: string; sourceId: string; text: string }>)
@@ -141,7 +136,7 @@ export async function searchKnowledge(
   });
 
   const fragmentHits: FragmentSearchHit[] = fragmentDetails
-      .map((fragment) => {
+    .map((fragment) => {
       const source = fragmentSources.find((entry) => entry.id === fragment.sourceId);
       if (!source) {
         return null;
@@ -155,17 +150,18 @@ export async function searchKnowledge(
         ? cosineSimilarity(parseJsonArray<number>(fragment.embeddingJson), queryEmbedding)
         : 0;
       const lexical = lexicalScore(fragment.text, queryTokens);
-        return {
-          id: fragment.id,
-          sourceId: fragment.sourceId,
-          sourceTitle: source.title,
-          text: fragment.text,
-          lexicalScore: lexical,
-          semanticScore: semantic,
-          score: context.provider.isConfigured ? (semantic * 0.65) + (lexical * 0.35) : lexical,
-          retrievalKind: (fragmentRows.some((row) => row.id === fragment.id) ? "fts" : "fallback") as "fts" | "fallback"
-        };
-      })
+
+      return {
+        id: fragment.id,
+        sourceId: fragment.sourceId,
+        sourceTitle: source.title,
+        text: fragment.text,
+        lexicalScore: lexical,
+        semanticScore: semantic,
+        score: context.provider.isConfigured ? (semantic * 0.65) + (lexical * 0.35) : lexical,
+        retrievalKind: (fragmentRows.some((row) => row.id === fragment.id) ? "fts" : "fallback") as "fts" | "fallback"
+      };
+    })
     .filter((entry): entry is FragmentSearchHit => Boolean(entry))
     .sort((left, right) => right.score - left.score)
     .slice(0, limit);
@@ -178,6 +174,7 @@ export async function searchKnowledge(
         ? cosineSimilarity(parseJsonArray<number>(node.embeddingJson), queryEmbedding)
         : 0;
       const lexical = lexicalScore(`${node.title}\n${node.summary}\n${node.bodyMd}`, queryTokens);
+
       return {
         id: node.id,
         title: node.title,

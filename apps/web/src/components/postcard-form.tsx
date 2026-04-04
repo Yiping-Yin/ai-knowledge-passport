@@ -39,17 +39,17 @@ export function PostcardForm() {
             })
           });
           const payload = await response.json();
-          setMessage(response.ok ? `已生成：${payload.postcardId}` : payload.error ?? "生成失败");
+          setMessage(response.ok ? `Created: ${payload.postcardId}` : payload.error ?? "Generation failed");
         });
       }}
     >
       <div className="grid gap-4 md:grid-cols-2">
         <label className="space-y-2 text-sm">
-          <span>标题</span>
+          <span>Title</span>
           <input name="title" required className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
         </label>
         <label className="space-y-2 text-sm">
-          <span>卡片类型</span>
+          <span>Card Type</span>
           <select name="cardType" defaultValue="knowledge" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
             <option value="knowledge">knowledge</option>
             <option value="project">project</option>
@@ -59,15 +59,15 @@ export function PostcardForm() {
         </label>
       </div>
       <label className="space-y-2 text-sm">
-        <span>关联 Node IDs</span>
+        <span>Related Node IDs</span>
         <input name="relatedNodeIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="node_a,node_b" />
       </label>
       <label className="space-y-2 text-sm">
-        <span>关联 Source IDs</span>
+        <span>Related Source IDs</span>
         <input name="relatedSourceIds" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="src_a,src_b" />
       </label>
       <label className="space-y-2 text-sm">
-        <span>隐私等级</span>
+        <span>Privacy Level</span>
         <select name="privacyLevel" defaultValue="L1_LOCAL_AI" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
           <option value="L1_LOCAL_AI">L1_LOCAL_AI</option>
           <option value="L0_SELF">L0_SELF</option>
@@ -78,23 +78,23 @@ export function PostcardForm() {
       </label>
       <label className="flex items-center gap-2 text-sm text-[var(--muted)]">
         <input type="checkbox" name="autoGenerate" value="true" />
-        让 AI 根据关联条目自动生成 claim / evidence / user view
+        Let AI generate the claim, evidence, and user view from related entries
       </label>
       <label className="space-y-2 text-sm">
-        <span>核心判断</span>
+        <span>Core Claim</span>
         <textarea name="claim" rows={3} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
       </label>
       <label className="space-y-2 text-sm">
-        <span>关键依据</span>
+        <span>Evidence Summary</span>
         <textarea name="evidenceSummary" rows={3} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
       </label>
       <label className="space-y-2 text-sm">
-        <span>我的判断</span>
+        <span>My View</span>
         <textarea name="userView" rows={3} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
       </label>
       <div className="flex items-center gap-4">
         <button disabled={isPending} className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white disabled:opacity-50">
-          {isPending ? "生成中..." : "保存明信片"}
+          {isPending ? "Generating..." : "Save Postcard"}
         </button>
         {message ? <span className="text-sm text-[var(--muted)]">{message}</span> : null}
       </div>

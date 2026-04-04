@@ -11,17 +11,17 @@ export default async function DashboardPage() {
   const stats = await getDashboardStats(getAppContext());
 
   return (
-    <PageShell currentPath="/dashboard" title="Dashboard" subtitle="今日知识增长与对外投影总览">
+    <PageShell currentPath="/dashboard" title="Dashboard" subtitle="Today’s knowledge growth and outward-facing projection overview">
       <section className="grid gap-4 md:grid-cols-3">
-        <StatTile label="今日导入" value={stats.importsToday} hint="当日入库材料数量" />
-        <StatTile label="待编译" value={stats.pendingCompile} hint="已归档、待编译 source" />
-        <StatTile label="待审阅" value={stats.pendingReview} hint="编译后待用户裁决 node" />
+        <StatTile label="Imports Today" value={stats.importsToday} hint="Number of sources added today" />
+        <StatTile label="Pending Compile" value={stats.pendingCompile} hint="Archived sources waiting for compilation" />
+        <StatTile label="Pending Review" value={stats.pendingReview} hint="Compiled nodes waiting for user review" />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <SectionCard title="近期研究输出" description="研究问答和正式输出都在这里回看。">
+        <SectionCard title="Recent Research Output" description="Review recent research sessions and formal outputs here.">
           <div className="space-y-4">
-            {stats.recentResearch.length === 0 ? <p className="text-sm text-[var(--muted)]">还没有研究会话。</p> : null}
+            {stats.recentResearch.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no research sessions yet.</p> : null}
             {stats.recentResearch.map((item) => (
               <article key={item.id} className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
                 <p className="text-sm font-medium">{item.question}</p>
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="护照与备份" description="对外投影版本和本地恢复点。">
+        <SectionCard title="Passports and Backups" description="Outward-facing artifacts and local recovery points.">
           <div className="space-y-4">
             <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
               <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Latest Passport</p>
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
                   <p className="mt-2 text-sm text-[var(--muted)]">{formatDistanceToNow(new Date(stats.latestPassport.createdAt), { addSuffix: true })}</p>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-[var(--muted)]">还没有生成护照快照。</p>
+                <p className="mt-3 text-sm text-[var(--muted)]">No passport snapshot has been generated yet.</p>
               )}
             </div>
             <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
@@ -61,7 +61,7 @@ export default async function DashboardPage() {
                   <p className="mt-2 text-sm text-[var(--muted)]">{formatDistanceToNow(new Date(stats.latestBackup.createdAt), { addSuffix: true })}</p>
                 </>
               ) : (
-                <p className="mt-3 text-sm text-[var(--muted)]">还没有备份。</p>
+                <p className="mt-3 text-sm text-[var(--muted)]">No backup exists yet.</p>
               )}
             </div>
           </div>

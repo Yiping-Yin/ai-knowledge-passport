@@ -2,41 +2,41 @@
 
 ## Supported Scope
 
-当前仓库重点关注以下安全问题：
+This repository currently focuses on the following security concerns:
 
-- 本地知识数据泄露风险
-- 未经授权的外部发送或导出
-- 文件导入、解析、转写、OCR 等链路中的命令执行或路径安全问题
-- 备份、恢复与对象存储中的敏感数据暴露
-- 提示注入导致的越权检索、越权编译或错误授权
+- Leakage risks for local knowledge data
+- Unauthorized outbound sending or exporting
+- Command execution or path-safety issues in import, parsing, transcription, and OCR pipelines
+- Sensitive data exposure in backups, restore flows, and object storage
+- Prompt-injection risks that cause over-broad retrieval, over-broad compilation, or invalid authorization
 
 ## Reporting a Vulnerability
 
-请不要在公开 issue 中直接披露安全漏洞细节。
+Do not disclose vulnerability details directly in public issues.
 
-建议流程：
+Suggested process:
 
-1. 先通过私下渠道联系维护者。
-2. 说明影响范围、复现步骤、潜在风险和建议修复方向。
-3. 在获得确认前，不要公开完整 exploit 或敏感细节。
+1. Contact the maintainer privately first.
+2. Describe impact scope, reproduction steps, potential risk, and suggested remediation.
+3. Do not publish a full exploit or sensitive details before the issue is acknowledged.
 
-如果 GitHub 私有漏洞报告已开启，优先使用该渠道。
+If GitHub private vulnerability reporting is enabled, prefer that channel.
 
 ## What to Include
 
-请尽量包含：
+Please include, where possible:
 
-- 受影响模块或路径
-- 复现步骤
-- 触发条件
-- 实际影响
-- 可能的修复建议
+- Affected module or path
+- Reproduction steps
+- Trigger conditions
+- Actual impact
+- Potential remediation ideas
 
 ## Response Goal
 
-项目会尽量在确认后快速完成：
+The project will try to move quickly after confirmation on:
 
-- 漏洞分级
-- 修复方案确认
-- 补丁发布
-- 必要时的公开说明
+- Severity classification
+- Fix-plan confirmation
+- Patch release
+- Public disclosure when appropriate

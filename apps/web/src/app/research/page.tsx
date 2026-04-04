@@ -7,8 +7,8 @@ import { getAppContext } from "@/server/context";
 
 export default function ResearchPage() {
   return (
-    <PageShell currentPath="/research" title="Research" subtitle="只围绕本地知识层与原始材料进行检索和推理">
-      <SectionCard title="研究代理台" description="回答必须附引用，没有证据时会拒答。">
+    <PageShell currentPath="/research" title="Research" subtitle="Retrieve and reason only over the local knowledge layer and source material">
+      <SectionCard title="Research Workspace" description="Answers must include citations and should refuse unsupported claims.">
         <ResearchForm />
       </SectionCard>
     </PageShell>

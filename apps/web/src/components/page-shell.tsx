@@ -26,9 +26,9 @@ export function PageShell(props: { currentPath: string; title: string; subtitle:
             </div>
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Local-first</p>
-              <h1 className="mt-1 text-xl font-semibold">AI 知识护照</h1>
+              <h1 className="mt-1 text-xl font-semibold">AI Knowledge Passport</h1>
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                原始材料、本地 wiki、研究输出、护照快照和备份都统一由本机控制。
+                Raw materials, the local wiki, research outputs, passport snapshots, and backups all stay under local control.
               </p>
             </div>
           </div>
@@ -56,9 +56,9 @@ export function PageShell(props: { currentPath: string; title: string; subtitle:
           </nav>
 
           <div className="mt-8 rounded-3xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 text-sm text-[var(--muted)]">
-            <p className="font-medium text-[var(--ink)]">MVP 闭环</p>
+            <p className="font-medium text-[var(--ink)]">MVP Loop</p>
             <p className="mt-2 leading-6">
-              导入、编译、问答、回流、明信片、护照与备份都能在这个壳里直接执行。
+              Import, compile, research, flowback, postcards, passports, and backups all run directly inside this shell.
             </p>
           </div>
         </aside>
