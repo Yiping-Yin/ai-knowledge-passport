@@ -111,6 +111,4 @@ npm run build
 
 ## License
 
-许可证尚未最终写入仓库。
-
-如果你准备把它作为正式开源项目长期维护，下一步应尽快补上明确许可证。
+本项目采用 [MIT License](./LICENSE)。
