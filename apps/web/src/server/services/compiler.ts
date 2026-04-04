@@ -5,6 +5,7 @@ import { nodeReviews, sourceFragments, sources, wikiEdges, wikiNodes } from "@/s
 import { cosineSimilarity } from "@/server/utils/text";
 
 import { writeAuditLog } from "./audit";
+import { completeCompilationRun, createCompilationRun } from "./compilation-runs";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { deleteWikiNodeFts, syncWikiNodeFts } from "./fts";
 
@@ -100,250 +101,282 @@ export async function compileSource(context: AppContext, sourceId: string) {
     limit: 50
   });
 
-  const compileResult = await context.provider.summarizeAndLink({
-    title: source.title,
-    text: source.extractedText,
-    fragments: fragments.map((fragment) => ({ id: fragment.id, text: fragment.text })),
-    existingNodes: existingNodes.map((node) => ({
-      id: node.id,
-      title: node.title,
-      summary: node.summary,
-      tags: parseJsonArray<string>(node.tagsJson)
-    })),
-    projectKey: source.projectKey,
-    tags: parseJsonArray<string>(source.tagsJson),
-    privacyLevel: source.privacyLevel as never,
-    sourceId
+  const runId = await createCompilationRun(context, {
+    sourceId,
+    providerName: context.provider.constructor.name,
+    inputSummary: {
+      sourceTitle: source.title,
+      projectKey: source.projectKey,
+      fragmentCount: fragments.length,
+      acceptedNodeCount: existingNodes.length
+    }
   });
 
-  const candidateTexts = compileResult.nodes.map((node) => `${node.title}\n${node.summary}\n${node.bodyMd}`);
-  const nodeEmbeddings = candidateTexts.length > 0 ? await context.provider.embedText(candidateTexts) : [];
-  const candidateRecords = compileResult.nodes.map((node, index) => ({
-    ...node,
-    embedding: nodeEmbeddings[index] ?? []
-  }));
-
-  const dedupedCandidates: CandidateNodeRecord[] = [];
-  for (const candidate of candidateRecords) {
-    const existingIndex = dedupedCandidates.findIndex((entry) => isSameKnowledgeTarget(entry, candidate));
-    if (existingIndex < 0) {
-      dedupedCandidates.push(candidate);
-      continue;
-    }
-
-    const currentCandidate = dedupedCandidates[existingIndex];
-    if (currentCandidate && candidateQuality(candidate) > candidateQuality(currentCandidate)) {
-      dedupedCandidates[existingIndex] = candidate;
-    }
-  }
-
-  const acceptedNodeRecords = existingNodes.map((node) => ({
-    ...node,
-    tags: parseJsonArray<string>(node.tagsJson),
-    sourceIds: parseJsonArray<string>(node.sourceIdsJson),
-    embedding: parseJsonArray<number>(node.embeddingJson)
-  }));
-
-  const duplicateMatches: Array<{ candidate: CandidateNodeRecord; existingNode: ExistingNodeRecord & { tags: string[]; sourceIds: string[]; embedding: number[] } }> = [];
-  const insertableCandidates: CandidateNodeRecord[] = [];
-
-  for (const candidate of dedupedCandidates) {
-    const matchedExisting = acceptedNodeRecords.find((existingNode) => isSameKnowledgeTarget(existingNode, candidate));
-    if (matchedExisting) {
-      duplicateMatches.push({
-        candidate,
-        existingNode: matchedExisting
-      });
-      continue;
-    }
-    insertableCandidates.push(candidate);
-  }
-
-  const insertedNodes: Array<{ id: string; title: string }> = [];
-
-  for (const node of insertableCandidates) {
-    const nodeId = createId("node");
-    const timestamp = nowIso();
-    const embedding = node.embedding;
-    await context.db.insert(wikiNodes).values({
-      id: nodeId,
-      nodeType: node.nodeType,
-      title: node.title,
-      summary: node.summary,
-      bodyMd: node.bodyMd,
-      status: "pending_review",
-      sourceIdsJson: JSON.stringify([sourceId]),
-      tagsJson: JSON.stringify(node.tags),
-      projectKey: source.projectKey ?? null,
-      privacyLevel: source.privacyLevel,
-      embeddingJson: embedding ? JSON.stringify(embedding) : null,
-      updatedAt: timestamp,
-      createdAt: timestamp
-    });
-
-    syncWikiNodeFts(context, {
-      id: nodeId,
-      title: node.title,
-      summary: node.summary,
-      bodyMd: node.bodyMd
-    });
-
-    insertedNodes.push({
-      id: nodeId,
-      title: node.title
-    });
-  }
-
-  for (const duplicateMatch of duplicateMatches) {
-    const nextSourceIds = uniqueStrings([
-      ...duplicateMatch.existingNode.sourceIds,
+  try {
+    const compileResult = await context.provider.summarizeAndLink({
+      title: source.title,
+      text: source.extractedText,
+      fragments: fragments.map((fragment) => ({ id: fragment.id, text: fragment.text })),
+      existingNodes: existingNodes.map((node) => ({
+        id: node.id,
+        title: node.title,
+        summary: node.summary,
+        tags: parseJsonArray<string>(node.tagsJson)
+      })),
+      projectKey: source.projectKey,
+      tags: parseJsonArray<string>(source.tagsJson),
+      privacyLevel: source.privacyLevel as never,
       sourceId
-    ]);
-    const nextTags = uniqueStrings([
-      ...duplicateMatch.existingNode.tags,
-      ...duplicateMatch.candidate.tags
-    ]);
-
-    await context.db
-      .update(wikiNodes)
-      .set({
-        sourceIdsJson: JSON.stringify(nextSourceIds),
-        tagsJson: JSON.stringify(nextTags),
-        updatedAt: nowIso()
-      })
-      .where(eq(wikiNodes.id, duplicateMatch.existingNode.id));
-
-    await context.db.insert(nodeReviews).values({
-      id: createId("review"),
-      nodeId: duplicateMatch.existingNode.id,
-      action: "merge",
-      actorType: "system",
-      note: `compiler attached source ${sourceId} to existing node ${duplicateMatch.existingNode.title}`,
-      mergedIntoNodeId: duplicateMatch.existingNode.id,
-      createdAt: nowIso()
     });
-  }
 
-  for (const hint of compileResult.relationHints) {
-    const sourceNode = insertedNodes.find((entry) => entry.title === hint.title);
-    if (!sourceNode) {
-      continue;
+    const candidateTexts = compileResult.nodes.map((node) => `${node.title}\n${node.summary}\n${node.bodyMd}`);
+    const nodeEmbeddings = candidateTexts.length > 0 ? await context.provider.embedText(candidateTexts) : [];
+    const candidateRecords = compileResult.nodes.map((node, index) => ({
+      ...node,
+      embedding: nodeEmbeddings[index] ?? []
+    }));
+
+    const dedupedCandidates: CandidateNodeRecord[] = [];
+    for (const candidate of candidateRecords) {
+      const existingIndex = dedupedCandidates.findIndex((entry) => isSameKnowledgeTarget(entry, candidate));
+      if (existingIndex < 0) {
+        dedupedCandidates.push(candidate);
+        continue;
+      }
+
+      const currentCandidate = dedupedCandidates[existingIndex];
+      if (currentCandidate && candidateQuality(candidate) > candidateQuality(currentCandidate)) {
+        dedupedCandidates[existingIndex] = candidate;
+      }
     }
 
-    await context.db.insert(wikiEdges).values({
-      id: createId("edge"),
-      fromNodeId: sourceNode.id,
-      toNodeId: hint.relatedNodeId,
-      relationType: hint.relationType,
-      weight: hint.weight,
-      createdAt: nowIso()
-    });
-  }
+    const acceptedNodeRecords = existingNodes.map((node) => ({
+      ...node,
+      tags: parseJsonArray<string>(node.tagsJson),
+      sourceIds: parseJsonArray<string>(node.sourceIdsJson),
+      embedding: parseJsonArray<number>(node.embeddingJson)
+    }));
 
-  for (const insertedNode of insertedNodes) {
-    const dbNode = await context.db.query.wikiNodes.findFirst({
-      where: eq(wikiNodes.id, insertedNode.id)
-    });
-    if (!dbNode) {
-      continue;
+    const duplicateMatches: Array<{ candidate: CandidateNodeRecord; existingNode: ExistingNodeRecord & { tags: string[]; sourceIds: string[]; embedding: number[] } }> = [];
+    const insertableCandidates: CandidateNodeRecord[] = [];
+
+    for (const candidate of dedupedCandidates) {
+      const matchedExisting = acceptedNodeRecords.find((existingNode) => isSameKnowledgeTarget(existingNode, candidate));
+      if (matchedExisting) {
+        duplicateMatches.push({
+          candidate,
+          existingNode: matchedExisting
+        });
+        continue;
+      }
+      insertableCandidates.push(candidate);
     }
 
-    const dbEmbedding = parseJsonArray<number>(dbNode.embeddingJson);
-    const strongestAccepted = acceptedNodeRecords
-      .map((existingNode) => ({
-        id: existingNode.id,
-        similarity: cosineSimilarity(existingNode.embedding, dbEmbedding)
-      }))
-      .filter((entry) => entry.similarity >= 0.82)
-      .sort((left, right) => right.similarity - left.similarity)
-      .slice(0, 2);
+    const insertedNodes: Array<{ id: string; title: string }> = [];
 
-    for (const relation of strongestAccepted) {
-      const alreadyLinked = await context.db.query.wikiEdges.findFirst({
-        where: and(
-          eq(wikiEdges.fromNodeId, insertedNode.id),
-          eq(wikiEdges.toNodeId, relation.id)
-        )
+    for (const node of insertableCandidates) {
+      const nodeId = createId("node");
+      const timestamp = nowIso();
+      const embedding = node.embedding;
+      await context.db.insert(wikiNodes).values({
+        id: nodeId,
+        nodeType: node.nodeType,
+        title: node.title,
+        summary: node.summary,
+        bodyMd: node.bodyMd,
+        status: "pending_review",
+        sourceIdsJson: JSON.stringify([sourceId]),
+        tagsJson: JSON.stringify(node.tags),
+        projectKey: source.projectKey ?? null,
+        privacyLevel: source.privacyLevel,
+        embeddingJson: embedding ? JSON.stringify(embedding) : null,
+        updatedAt: timestamp,
+        createdAt: timestamp
       });
 
-      if (alreadyLinked) {
+      syncWikiNodeFts(context, {
+        id: nodeId,
+        title: node.title,
+        summary: node.summary,
+        bodyMd: node.bodyMd
+      });
+
+      insertedNodes.push({
+        id: nodeId,
+        title: node.title
+      });
+    }
+
+    for (const duplicateMatch of duplicateMatches) {
+      const nextSourceIds = uniqueStrings([
+        ...duplicateMatch.existingNode.sourceIds,
+        sourceId
+      ]);
+      const nextTags = uniqueStrings([
+        ...duplicateMatch.existingNode.tags,
+        ...duplicateMatch.candidate.tags
+      ]);
+
+      await context.db
+        .update(wikiNodes)
+        .set({
+          sourceIdsJson: JSON.stringify(nextSourceIds),
+          tagsJson: JSON.stringify(nextTags),
+          updatedAt: nowIso()
+        })
+        .where(eq(wikiNodes.id, duplicateMatch.existingNode.id));
+
+      await context.db.insert(nodeReviews).values({
+        id: createId("review"),
+        nodeId: duplicateMatch.existingNode.id,
+        action: "merge",
+        actorType: "system",
+        note: `compiler attached source ${sourceId} to existing node ${duplicateMatch.existingNode.title}`,
+        mergedIntoNodeId: duplicateMatch.existingNode.id,
+        createdAt: nowIso()
+      });
+    }
+
+    for (const hint of compileResult.relationHints) {
+      const sourceNode = insertedNodes.find((entry) => entry.title === hint.title);
+      if (!sourceNode) {
         continue;
       }
 
       await context.db.insert(wikiEdges).values({
         id: createId("edge"),
-        fromNodeId: insertedNode.id,
-        toNodeId: relation.id,
-        relationType: "related",
-        weight: relation.similarity,
+        fromNodeId: sourceNode.id,
+        toNodeId: hint.relatedNodeId,
+        relationType: hint.relationType,
+        weight: hint.weight,
         createdAt: nowIso()
       });
     }
-  }
 
-  const fragmentEmbeddings = fragments
-    .map((fragment) => ({
-      id: fragment.id,
-      embedding: parseJsonArray<number>(fragment.embeddingJson),
-      text: fragment.text
-    }))
-    .filter((fragment) => fragment.embedding.length > 0);
+    for (const insertedNode of insertedNodes) {
+      const dbNode = await context.db.query.wikiNodes.findFirst({
+        where: eq(wikiNodes.id, insertedNode.id)
+      });
+      if (!dbNode) {
+        continue;
+      }
 
-  for (const node of insertedNodes) {
-    const dbNode = await context.db.query.wikiNodes.findFirst({
-      where: eq(wikiNodes.id, node.id)
+      const dbEmbedding = parseJsonArray<number>(dbNode.embeddingJson);
+      const strongestAccepted = acceptedNodeRecords
+        .map((existingNode) => ({
+          id: existingNode.id,
+          similarity: cosineSimilarity(existingNode.embedding, dbEmbedding)
+        }))
+        .filter((entry) => entry.similarity >= 0.82)
+        .sort((left, right) => right.similarity - left.similarity)
+        .slice(0, 2);
+
+      for (const relation of strongestAccepted) {
+        const alreadyLinked = await context.db.query.wikiEdges.findFirst({
+          where: and(
+            eq(wikiEdges.fromNodeId, insertedNode.id),
+            eq(wikiEdges.toNodeId, relation.id)
+          )
+        });
+
+        if (alreadyLinked) {
+          continue;
+        }
+
+        await context.db.insert(wikiEdges).values({
+          id: createId("edge"),
+          fromNodeId: insertedNode.id,
+          toNodeId: relation.id,
+          relationType: "related",
+          weight: relation.similarity,
+          createdAt: nowIso()
+        });
+      }
+    }
+
+    const fragmentEmbeddings = fragments
+      .map((fragment) => ({
+        id: fragment.id,
+        embedding: parseJsonArray<number>(fragment.embeddingJson),
+        text: fragment.text
+      }))
+      .filter((fragment) => fragment.embedding.length > 0);
+
+    for (const node of insertedNodes) {
+      const dbNode = await context.db.query.wikiNodes.findFirst({
+        where: eq(wikiNodes.id, node.id)
+      });
+
+      if (!dbNode) {
+        continue;
+      }
+
+      const embedding = parseJsonArray<number>(dbNode.embeddingJson);
+      if (!embedding.length) {
+        continue;
+      }
+
+      const strongest = fragmentEmbeddings
+        .map((fragment) => ({
+          fragmentId: fragment.id,
+          score: cosineSimilarity(fragment.embedding, embedding)
+        }))
+        .sort((left, right) => right.score - left.score)
+        .slice(0, 2);
+
+      for (const relation of strongest) {
+        await context.db.insert(nodeReviews).values({
+          id: createId("review"),
+          nodeId: node.id,
+          action: "rewrite",
+          actorType: "system",
+          note: `candidate evidence ${relation.fragmentId} score=${relation.score.toFixed(3)}`,
+          mergedIntoNodeId: null,
+          createdAt: nowIso()
+        });
+      }
+    }
+
+    await context.db
+      .update(sources)
+      .set({
+        status: insertedNodes.length > 0 ? "review_pending" : "confirmed"
+      })
+      .where(eq(sources.id, sourceId));
+
+    if (!insertedNodes.length && duplicateMatches.length > 0) {
+      await updateSourceConfirmationStatus(context, [sourceId]);
+    }
+
+    await completeCompilationRun(context, {
+      runId,
+      status: "succeeded",
+      outputNodeIds: insertedNodes.map((node) => node.id),
+      attachedNodeIds: duplicateMatches.map((match) => match.existingNode.id),
+      diffSummary: {
+        candidateCount: candidateRecords.length,
+        insertedNodeCount: insertedNodes.length,
+        attachedNodeCount: duplicateMatches.length
+      }
     });
 
-    if (!dbNode) {
-      continue;
-    }
+    await writeAuditLog(context, {
+      actionType: "compile_source",
+      objectType: "source",
+      objectId: sourceId,
+      result: "succeeded",
+      notes: `${insertedNodes.length} new nodes, ${duplicateMatches.length} duplicate attachments`
+    });
 
-    const embedding = parseJsonArray<number>(dbNode.embeddingJson);
-    if (!embedding.length) {
-      continue;
-    }
-
-    const strongest = fragmentEmbeddings
-      .map((fragment) => ({
-        fragmentId: fragment.id,
-        score: cosineSimilarity(fragment.embedding, embedding)
-      }))
-      .sort((left, right) => right.score - left.score)
-      .slice(0, 2);
-
-    for (const relation of strongest) {
-      await context.db.insert(nodeReviews).values({
-        id: createId("review"),
-        nodeId: node.id,
-        action: "rewrite",
-        actorType: "system",
-        note: `candidate evidence ${relation.fragmentId} score=${relation.score.toFixed(3)}`,
-        mergedIntoNodeId: null,
-        createdAt: nowIso()
-      });
-    }
+    return insertedNodes;
+  } catch (error) {
+    await completeCompilationRun(context, {
+      runId,
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message : "Compilation failed"
+    });
+    throw error;
   }
-
-  await context.db
-    .update(sources)
-    .set({
-      status: insertedNodes.length > 0 ? "review_pending" : "confirmed"
-    })
-    .where(eq(sources.id, sourceId));
-
-  if (!insertedNodes.length && duplicateMatches.length > 0) {
-    await updateSourceConfirmationStatus(context, [sourceId]);
-  }
-
-  await writeAuditLog(context, {
-    actionType: "compile_source",
-    objectType: "source",
-    objectId: sourceId,
-    result: "succeeded",
-    notes: `${insertedNodes.length} new nodes, ${duplicateMatches.length} duplicate attachments`
-  });
-
-  return insertedNodes;
 }
 
 export async function listKnowledgeNodes(context: AppContext, status: "accepted" | "pending_review" = "accepted") {
