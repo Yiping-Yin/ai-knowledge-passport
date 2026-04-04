@@ -4,7 +4,9 @@ import path from "node:path";
 
 import type { ModelProvider } from "@/server/providers/model-provider";
 import { createAppContext } from "@/server/context";
+import { wikiNodes } from "@/server/db/schema";
 import { createBackupRun } from "@/server/services/backups";
+import { createId } from "@/server/services/common";
 import { applyReviewAction, compileSource } from "@/server/services/compiler";
 import { createOutput } from "@/server/services/outputs";
 import { createPassportSnapshot } from "@/server/services/passports";
@@ -171,10 +173,100 @@ describe("knowledge passport MVP flow", () => {
       privacyFloor: "L1_LOCAL_AI"
     });
     expect(passportId).toMatch(/^passport_/);
+    const passports = await context.db.query.passportSnapshots.findMany();
+    const machineManifest = JSON.parse(passports[0]?.machineManifestJson ?? "{}") as { stats?: { nodeCount?: number; postcardCount?: number } };
+    expect(machineManifest.stats?.nodeCount).toBe(1);
+    expect(machineManifest.stats?.postcardCount).toBe(1);
 
     const backupId = await createBackupRun(context, "test_backup");
     expect(backupId).toMatch(/^backup_/);
     const backupFiles = await fs.readdir(path.join(dataDir, "backups"));
     expect(backupFiles.some((entry) => entry.endsWith(".zip"))).toBe(true);
+  });
+
+  it("filters passport contents by privacy floor", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-test-passport-privacy-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new FakeProvider()
+    });
+
+    const lowNodeId = createId("node");
+    const publicNodeId = createId("node");
+    await context.db.insert(wikiNodes).values([
+      {
+        id: lowNodeId,
+        nodeType: "summary",
+        title: "Private Node",
+        summary: "Only local AI can see this",
+        bodyMd: "private body",
+        status: "accepted",
+        sourceIdsJson: JSON.stringify(["src_private"]),
+        tagsJson: JSON.stringify(["private"]),
+        projectKey: "passport-mvp",
+        privacyLevel: "L1_LOCAL_AI",
+        embeddingJson: null,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      },
+      {
+        id: publicNodeId,
+        nodeType: "summary",
+        title: "Public Node",
+        summary: "Public facing summary",
+        bodyMd: "public body",
+        status: "accepted",
+        sourceIdsJson: JSON.stringify(["src_public"]),
+        tagsJson: JSON.stringify(["public"]),
+        projectKey: "passport-mvp",
+        privacyLevel: "L3_PUBLIC",
+        embeddingJson: null,
+        updatedAt: new Date().toISOString(),
+        createdAt: new Date().toISOString()
+      }
+    ]);
+
+    const privateCard = await createPostcard(context, {
+      title: "Private Card",
+      cardType: "knowledge",
+      claim: "private",
+      evidenceSummary: "private evidence",
+      userView: "private view",
+      relatedNodeIds: [lowNodeId],
+      relatedSourceIds: [],
+      privacyLevel: "L1_LOCAL_AI"
+    });
+
+    const publicCard = await createPostcard(context, {
+      title: "Public Card",
+      cardType: "knowledge",
+      claim: "public",
+      evidenceSummary: "public evidence",
+      userView: "public view",
+      relatedNodeIds: [publicNodeId],
+      relatedSourceIds: [],
+      privacyLevel: "L3_PUBLIC"
+    });
+
+    const passportId = await createPassportSnapshot(context, {
+      title: "Public Passport",
+      includeNodeIds: [lowNodeId, publicNodeId],
+      includePostcardIds: [privateCard.postcardId, publicCard.postcardId],
+      privacyFloor: "L3_PUBLIC"
+    });
+
+    const passport = await context.db.query.passportSnapshots.findFirst({
+      where: (table, { eq }) => eq(table.id, passportId)
+    });
+    expect(passport?.includeNodeIdsJson).toContain(publicNodeId);
+    expect(passport?.includeNodeIdsJson).not.toContain(lowNodeId);
+    expect(passport?.includePostcardIdsJson).toContain(publicCard.postcardId);
+    expect(passport?.includePostcardIdsJson).not.toContain(privateCard.postcardId);
   });
 });

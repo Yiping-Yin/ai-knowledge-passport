@@ -26,11 +26,29 @@ export default async function PassportPage() {
               {passports.map((passport) => (
                 <article key={passport.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-semibold">{passport.title}</p>
+                    <div>
+                      <p className="text-sm font-semibold">{passport.title}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">{passport.id}</p>
+                    </div>
                     <StatusBadge tone="success">{passport.privacyFloor}</StatusBadge>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+                    <span className="rounded-full bg-black/5 px-3 py-1">nodes {passport.includeNodeIds.length}</span>
+                    <span className="rounded-full bg-black/5 px-3 py-1">cards {passport.includePostcardIds.length}</span>
+                    <span className="rounded-full bg-black/5 px-3 py-1">
+                      themes {Array.isArray(passport.machineManifest.themeMap) ? passport.machineManifest.themeMap.length : 0}
+                    </span>
                   </div>
                   <div className="prose prose-sm mt-4 max-w-none">
                     <ReactMarkdown>{passport.humanMarkdown}</ReactMarkdown>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                    <a className="rounded-full border border-[var(--line)] px-4 py-2" href={`/api/passports/${passport.id}/human`}>
+                      下载 Human Markdown
+                    </a>
+                    <a className="rounded-full border border-[var(--line)] px-4 py-2" href={`/api/passports/${passport.id}/machine`}>
+                      下载 Machine Manifest
+                    </a>
                   </div>
                 </article>
               ))}
