@@ -71,6 +71,20 @@ export default async function KnowledgePage(props: { searchParams?: Promise<Reco
           )}
         </SectionCard>
       </div>
+
+      <SectionCard title="Advanced Tools" description="These routes remain available for deeper operator work, but they are no longer first-layer navigation in the MVP release candidate.">
+        <div className="flex flex-wrap gap-3">
+          <Link href="/signals" className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+            Open Signals
+          </Link>
+          <Link href="/postcards" className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+            Open Topic Cards
+          </Link>
+          <Link href="/research" className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+            Open Research
+          </Link>
+        </div>
+      </SectionCard>
     </PageShell>
   );
 }

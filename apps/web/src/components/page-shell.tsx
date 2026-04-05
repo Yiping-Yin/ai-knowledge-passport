@@ -8,16 +8,13 @@ const coreNavigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/inbox", label: "Inbox", icon: Files },
   { href: "/knowledge", label: "Knowledge", icon: LibraryBig },
-  { href: "/signals", label: "Signals", icon: Target },
-  { href: "/postcards", label: "Postcards", icon: Activity },
   { href: "/passport", label: "Passport", icon: Shield },
+  { href: "/visas", label: "Mount Center", icon: Key },
   { href: "/review", label: "Review Queue", icon: BadgeCheck },
-  { href: "/research", label: "Research", icon: FileSearch }
 ];
 
 const advancedNavigation = [
   { href: "/outputs", label: "Outputs", icon: BookOpenText },
-  { href: "/visas", label: "Mount Center", icon: Key },
   { href: "/avatars", label: "Avatars", icon: Bot },
   { href: "/exports", label: "Exports", icon: Download },
   { href: "/policies", label: "Policies", icon: SlidersHorizontal },
@@ -102,7 +99,7 @@ export function PageShell(props: { currentPath: string; title: string; subtitle:
           <div className="mt-8 rounded-3xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 text-sm text-[var(--muted)]">
             <p className="font-medium text-[var(--ink)]">Primary Loop</p>
             <p className="mt-2 leading-6">
-              Import, compile, synthesize signals, publish postcards, generate a passport, and mount only what an AI needs.
+              Import source material, compile evidence-backed knowledge, publish topic cards, generate a passport, and mount only what an AI needs.
             </p>
           </div>
         </aside>

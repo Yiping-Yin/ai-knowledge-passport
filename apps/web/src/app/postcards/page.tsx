@@ -12,20 +12,20 @@ export default async function PostcardsPage() {
   const postcards = await listPostcards(getAppContext());
 
   return (
-    <PageShell currentPath="/postcards" title="Postcards" subtitle="Compress important knowledge into composable, traceable communication units">
+    <PageShell currentPath="/postcards" title="Topic Cards" subtitle="Compress important knowledge into traceable topic cards without changing the underlying postcard implementation">
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <SectionCard title="Create Postcard" description="Supports manual authoring or AI-assisted generation from related nodes and sources.">
+        <SectionCard title="Create Topic Card" description="Supports manual authoring or AI-assisted generation from related nodes and sources.">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3 rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
-              <span className="text-[var(--muted)]">Postcards can now be projected outward through visa bundles and secret links.</span>
+              <span className="text-[var(--muted)]">Topic cards can be projected outward through visa bundles and secret links.</span>
               <Link href="/visas" className="rounded-full border border-[var(--line)] px-4 py-2">
-                Open Visa Workshop
+                Open Mount Center
               </Link>
             </div>
             <PostcardForm />
           </div>
         </SectionCard>
-        <SectionCard title="Postcard Library" description="These entries can later be composed into a passport.">
+        <SectionCard title="Topic Card Library" description="These entries can later be composed into a passport.">
           <div className="space-y-4">
             {postcards.map((card) => (
               <article key={card.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -49,7 +49,7 @@ export default async function PostcardsPage() {
                 </div>
               </article>
             ))}
-            {postcards.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no postcards yet.</p> : null}
+            {postcards.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no topic cards yet.</p> : null}
           </div>
         </SectionCard>
       </div>

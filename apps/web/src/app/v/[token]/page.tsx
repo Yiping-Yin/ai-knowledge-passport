@@ -66,7 +66,7 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
     <main className="mx-auto min-h-screen max-w-5xl px-5 py-10">
       <div className="space-y-6">
         <section className="rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8">
-          <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Read-only visa</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Scoped visa</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight">{visa.title}</h1>
           <p className="mt-4 text-base leading-7 text-[var(--muted)]">
             Audience: {visa.audienceLabel} · Source: {visa.passportId ? "passport snapshot" : "direct selection"}
@@ -84,7 +84,7 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
                 ? `machine downloads ${visa.machineDownloadCount}/${visa.maxMachineDownloads}`
                 : `machine downloads ${visa.machineDownloadCount}`}
             </StatusBadge>
-            <StatusBadge>read-only</StatusBadge>
+            <StatusBadge>scoped access</StatusBadge>
           </div>
           {visa.allowMachineDownload ? (
             <a className="mt-6 inline-flex rounded-full border border-[var(--line)] px-4 py-2 text-sm" href={visa.machinePath ?? "#"}>
@@ -141,7 +141,7 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
           <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Lightweight flowback</p>
           <h2 className="mt-3 text-2xl font-semibold">Send feedback or ask a scoped question</h2>
           <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-            This page is read-only. You can still leave feedback, a narrow question, or a collaboration intent. Your submission enters the owner’s internal review queue.
+            This page grants scoped access only. You can still leave feedback, a narrow question, or a collaboration intent. Your submission enters the owner’s internal review queue.
           </p>
           <div className="mt-6">
             <ExternalVisaFeedbackForm token={params.token} />

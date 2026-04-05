@@ -42,7 +42,7 @@ export default async function VisasPage() {
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard
           title="Create Visa Bundle"
-          description="Begin with the passport context, then narrow nodes, postcards, access limits, and machine-download policy for one specific mount."
+          description="Begin with the passport context, then narrow nodes, topic cards, access limits, and machine-download policy for one specific mount."
         >
           <VisaForm
             passports={passports.map((passport) => ({
@@ -74,7 +74,7 @@ export default async function VisasPage() {
                 <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
                   <span className="rounded-full bg-black/5 px-3 py-1">audience {visa.audienceLabel}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">nodes {visa.includeNodeIds.length}</span>
-                  <span className="rounded-full bg-black/5 px-3 py-1">cards {visa.includePostcardIds.length}</span>
+                  <span className="rounded-full bg-black/5 px-3 py-1">topic cards {visa.includePostcardIds.length}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">{visa.expiresAt ? `expires ${visa.expiresAt}` : "no expiry"}</span>
                   <span className="rounded-full bg-black/5 px-3 py-1">
                     {visa.maxAccessCount ? `views ${visa.accessCount}/${visa.maxAccessCount}` : `views ${visa.accessCount}`}
@@ -122,9 +122,9 @@ export default async function VisasPage() {
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold">Postcards</h4>
+              <h4 className="text-sm font-semibold">Topic Cards</h4>
               <Link href="/postcards" className="text-sm text-[var(--accent)]">
-                Open Postcards
+                Open Topic Cards
               </Link>
             </div>
             {postcardRows.map((card) => (
@@ -135,7 +135,7 @@ export default async function VisasPage() {
                 </p>
               </article>
             ))}
-            {postcardRows.length === 0 ? <p className="text-sm text-[var(--muted)]">No postcards are available yet.</p> : null}
+            {postcardRows.length === 0 ? <p className="text-sm text-[var(--muted)]">No topic cards are available yet.</p> : null}
           </div>
 
           <div className="space-y-3">

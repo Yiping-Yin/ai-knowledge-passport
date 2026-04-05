@@ -21,7 +21,7 @@ export default async function PassportPage() {
   ]);
 
   return (
-    <PageShell currentPath="/passport" title="Passport" subtitle="Publish the canonical AI entry object: postcards, active focus, capability signals, and blind spots in one governed manifest">
+    <PageShell currentPath="/passport" title="Passport" subtitle="Publish the canonical AI entry object: topic cards, active focus, capability signals, and blind spots in one governed manifest">
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard title="Passport and Backup Controls" description="Passport generation packages the context an AI should read first. Backup remains a secondary recovery layer.">
           <div className="space-y-6">
@@ -43,7 +43,7 @@ export default async function PassportPage() {
           </div>
         </SectionCard>
         <div className="space-y-6">
-          <SectionCard title="Passport Snapshots" description="Each passport now captures what an AI should know about the user before it reads deeper knowledge.">
+          <SectionCard title="Passport Snapshots" description="Each passport now captures what an AI should know first: focus, topic cards, signals, and governed boundaries.">
             <div className="space-y-4">
               {passports.map((passport) => (
                 <article key={passport.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">
@@ -56,7 +56,7 @@ export default async function PassportPage() {
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
                     <span className="rounded-full bg-black/5 px-3 py-1">nodes {passport.includeNodeIds.length}</span>
-                    <span className="rounded-full bg-black/5 px-3 py-1">cards {passport.includePostcardIds.length}</span>
+                    <span className="rounded-full bg-black/5 px-3 py-1">topic cards {passport.includePostcardIds.length}</span>
                     <span className="rounded-full bg-black/5 px-3 py-1">
                       themes {Array.isArray(passport.machineManifest.themeMap) ? passport.machineManifest.themeMap.length : 0}
                     </span>
