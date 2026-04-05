@@ -34,6 +34,7 @@ import {
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray, parseJsonObject } from "./common";
 import { createGrant } from "./grants";
+import { assertPolicyAllows, resolveObjectPolicy } from "./policies";
 import { canIncludeInPassport } from "./privacy";
 
 type VisaNode = {
@@ -647,7 +648,19 @@ async function resolveVisaRowByToken(context: AppContext, token: string) {
 }
 
 export async function createVisaBundle(context: AppContext, input: VisaBundleCreateInput) {
-  const content = await loadVisaContent(context, input);
+  let effectivePrivacyFloor = input.privacyFloor;
+  if (input.passportId) {
+    const sourcePolicy = await assertPolicyAllows(context, "passport_snapshot", input.passportId, "secret_links");
+    effectivePrivacyFloor = sourcePolicy.privacyFloor ?? input.privacyFloor;
+    if (input.allowMachineDownload && !sourcePolicy.allowMachineAccess) {
+      throw new Error(`Policy denied machine_access for passport_snapshot:${input.passportId}`);
+    }
+  }
+
+  const content = await loadVisaContent(context, {
+    ...input,
+    privacyFloor: effectivePrivacyFloor
+  });
   const sourceMap = await loadVisaSourceMap(context, content);
 
   const visaId = createId("visa");
@@ -676,7 +689,7 @@ export async function createVisaBundle(context: AppContext, input: VisaBundleCre
     passportId: input.passportId ?? null,
     description: input.description,
     purpose: input.purpose,
-    privacyFloor: input.privacyFloor,
+    privacyFloor: effectivePrivacyFloor,
     expiresAt: input.expiresAt ?? null,
     allowMachineDownload: input.allowMachineDownload,
     status: initialStatus,
@@ -700,7 +713,7 @@ export async function createVisaBundle(context: AppContext, input: VisaBundleCre
     machineManifestJson: JSON.stringify(machineManifest),
     includeNodeIdsJson: JSON.stringify(content.nodes.map((node) => node.id)),
     includePostcardIdsJson: JSON.stringify(content.cards.map((card) => card.id)),
-    privacyFloor: input.privacyFloor,
+    privacyFloor: effectivePrivacyFloor,
     redactionJson: JSON.stringify(input.redaction),
     allowMachineDownload: input.allowMachineDownload ? 1 : 0,
     expiresAt: input.expiresAt ?? null,
@@ -892,6 +905,7 @@ export async function accessVisaBundleByToken(
   }
 
   const row = resolved.row;
+  const policy = await resolveObjectPolicy(context, "visa_bundle", row.id);
   const effectiveStatus = parseVisaStatus(row);
   if (effectiveStatus === "revoked") {
     await writeVisaAccessEvent(context, {
@@ -918,6 +932,17 @@ export async function accessVisaBundleByToken(
     return { status: "expired" };
   }
 
+  if (!policy.allowSecretLinks) {
+    await writeVisaAccessEvent(context, {
+      visaId: row.id,
+      accessType: mode === "human" ? "human_view" : "machine_download",
+      result: "denied",
+      denialReason: "policy_secret_links_disabled",
+      meta
+    });
+    return { status: "revoked" };
+  }
+
   if (mode === "human" && getHumanLimitExceeded(row)) {
     await writeVisaAccessEvent(context, {
       visaId: row.id,
@@ -929,12 +954,12 @@ export async function accessVisaBundleByToken(
     return { status: "human_limit_reached" };
   }
 
-  if (mode === "machine" && !row.allowMachineDownload) {
+  if (mode === "machine" && (!row.allowMachineDownload || !policy.allowMachineAccess)) {
     await writeVisaAccessEvent(context, {
       visaId: row.id,
       accessType: "machine_download",
       result: "denied",
-      denialReason: "machine_download_disabled",
+      denialReason: !row.allowMachineDownload ? "machine_download_disabled" : "policy_machine_access_disabled",
       meta
     });
     return { status: "machine_disabled" };

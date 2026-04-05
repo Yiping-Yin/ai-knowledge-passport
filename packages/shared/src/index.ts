@@ -128,6 +128,14 @@ export const exportPackageStatuses = [
   "failed"
 ] as const;
 
+export const objectPolicyObjectTypes = [
+  "passport_snapshot",
+  "visa_bundle",
+  "agent_pack_snapshot",
+  "avatar_profile",
+  "export_package"
+] as const;
+
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
 export const sourceStatusSchema = z.enum(sourceStatuses);
@@ -147,6 +155,7 @@ export const visaFeedbackStatusSchema = z.enum(visaFeedbackStatuses);
 export const avatarStatusSchema = z.enum(avatarStatuses);
 export const avatarSimulationStatusSchema = z.enum(avatarSimulationStatuses);
 export const exportPackageStatusSchema = z.enum(exportPackageStatuses);
+export const objectPolicyObjectTypeSchema = z.enum(objectPolicyObjectTypes);
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
@@ -287,6 +296,18 @@ export const agentPackExportCreateSchema = z.object({
   includeAvatarProfile: z.boolean().default(false)
 });
 
+export const objectPolicyUpsertSchema = z.object({
+  objectType: objectPolicyObjectTypeSchema,
+  objectId: z.string().min(1),
+  privacyFloorOverride: privacyLevelSchema.optional(),
+  allowSecretLinks: z.boolean().optional(),
+  allowMachineAccess: z.boolean().optional(),
+  allowExports: z.boolean().optional(),
+  allowAvatarBinding: z.boolean().optional(),
+  allowAvatarSimulation: z.boolean().optional(),
+  notes: z.string().default("")
+});
+
 export const backupCreateSchema = z.object({
   note: z.string().default("manual_backup")
 });
@@ -315,6 +336,7 @@ export type VisaFeedbackStatus = z.infer<typeof visaFeedbackStatusSchema>;
 export type AvatarStatus = z.infer<typeof avatarStatusSchema>;
 export type AvatarSimulationStatus = z.infer<typeof avatarSimulationStatusSchema>;
 export type ExportPackageStatus = z.infer<typeof exportPackageStatusSchema>;
+export type ObjectPolicyObjectType = z.infer<typeof objectPolicyObjectTypeSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
@@ -330,6 +352,7 @@ export type AvatarProfileCreateInput = z.infer<typeof avatarProfileCreateSchema>
 export type AvatarProfileUpdateInput = z.infer<typeof avatarProfileUpdateSchema>;
 export type AvatarSimulationInput = z.infer<typeof avatarSimulationInputSchema>;
 export type AgentPackExportCreateInput = z.infer<typeof agentPackExportCreateSchema>;
+export type ObjectPolicyUpsertInput = z.infer<typeof objectPolicyUpsertSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
 
@@ -455,4 +478,32 @@ export type ExportPackageSummary = {
 
 export type ExportPackageSnapshot = ExportPackageSummary & {
   manifest: Record<string, unknown>;
+};
+
+export type ObjectPolicyRecord = {
+  id: string;
+  objectType: ObjectPolicyObjectType;
+  objectId: string;
+  privacyFloorOverride: PrivacyLevel | null;
+  allowSecretLinks: boolean | null;
+  allowMachineAccess: boolean | null;
+  allowExports: boolean | null;
+  allowAvatarBinding: boolean | null;
+  allowAvatarSimulation: boolean | null;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ResolvedObjectPolicy = {
+  objectType: ObjectPolicyObjectType;
+  objectId: string;
+  privacyFloor: PrivacyLevel | null;
+  allowSecretLinks: boolean;
+  allowMachineAccess: boolean;
+  allowExports: boolean;
+  allowAvatarBinding: boolean;
+  allowAvatarSimulation: boolean;
+  chain: Array<{ objectType: ObjectPolicyObjectType; objectId: string }>;
+  directPolicy: ObjectPolicyRecord | null;
 };
