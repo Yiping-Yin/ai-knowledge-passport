@@ -17,7 +17,11 @@
     "typecheck": "npm run typecheck -w @ai-knowledge-passport/shared && npm run typecheck -w @ai-knowledge-passport/web",
     "test": "npm run test -w @ai-knowledge-passport/web",
     "verify": "npm run typecheck && npm run test && npm run build",
-    "ci:verify": "npm run verify"
+    "ci:verify": "npm run verify",
+    "verify:steps": "npm run typecheck && npm run test && npm run build",
+    "debug:typecheck": "npm run typecheck -w @ai-knowledge-passport/shared && npm run typecheck -w @ai-knowledge-passport/web",
+    "debug:test": "npm run test -w @ai-knowledge-passport/web",
+    "debug:build": "npm run build -w @ai-knowledge-passport/web"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

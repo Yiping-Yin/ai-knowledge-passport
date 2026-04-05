@@ -161,6 +161,7 @@ Status: not started
 - Run both: `npm run dev:all`
 - Seed demo data: `npm run demo:seed`
 - Verify: `npm run verify`
+- Stepwise verify: `npm run verify:steps`
 
 ## Risks and active blockers
 

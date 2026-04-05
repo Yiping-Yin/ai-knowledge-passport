@@ -5,7 +5,7 @@ This page is for contributor-level debugging and test triage.
 ## Fast triage order
 
 1. Confirm dependencies are installed (`npm ci` preferred).
-2. Run root checks in dependency order:
+2. Run root checks in dependency order (or use `npm run verify:steps`):
    - `npm run typecheck`
    - `npm run test`
    - `npm run build`
@@ -54,6 +54,7 @@ Debug commands:
 
 After resolving errors in individual phases, run:
 
+- `npm run verify:steps`
 - `npm run verify`
 
 Record the command result in your PR description.

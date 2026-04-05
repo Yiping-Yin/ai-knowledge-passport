@@ -225,6 +225,15 @@ If you only need one part of the app:
 npm run verify
 ```
 
+Stepwise debug helpers:
+
+```bash
+npm run verify:steps
+npm run debug:typecheck
+npm run debug:test
+npm run debug:build
+```
+
 Equivalent individual commands:
 
 ```bash

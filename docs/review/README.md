@@ -12,4 +12,5 @@ Baseline review focus:
 Additional reference:
 
 - [Debug & Test Matrix](./debug-test-matrix.md)
+- [Testing Improvements Log](./testing-improvements.md)
 
