@@ -109,7 +109,7 @@ Validation:
 - tests
 - migration and seed validation if applicable
 
-Status: NOT STARTED
+Status: IN PROGRESS. The repo already contains baseline schema, persistence, and sample data paths for these entities; current work is narrowing the model and documentation to the MVP contract.
 
 ---
 
@@ -146,7 +146,7 @@ Validation:
 - fixture/golden validation
 - benchmark harness only if it already exists
 
-Status: NOT STARTED
+Status: IN PROGRESS. A working compile pipeline, learner-state generation, and passport regeneration path already exist; current work is focused on consistency, fixture discipline, and release hardening.
 
 ---
 
@@ -184,7 +184,7 @@ Validation:
 - tests
 - contract tests for access control and writeback behavior
 
-Status: NOT STARTED
+Status: IN PROGRESS. Visa, grant, audit, and writeback-adjacent flows already exist; current work is tightening them to the canonical MVP scopes and review boundaries.
 
 ---
 
@@ -221,7 +221,7 @@ Validation:
 - tests where the frontend stack supports them
 - manual smoke test notes
 
-Status: NOT STARTED
+Status: IN PROGRESS. The app already has a broad operator UI; current work is reducing top-level exposure so the MVP reads as Passport-first instead of platform-first.
 
 ---
 
@@ -303,21 +303,21 @@ Status: BLOCKED until M2 + evaluator exist
 ## Status summary
 
 - M0: completed
-- M1: not started
-- M2: not started
-- M3: not started
-- M4: not started
+- M1: in progress
+- M2: in progress
+- M3: in progress
+- M4: in progress
 - M5: blocked
 
 ## Notes for the current run
 
-This control-doc bundle PR is intentionally docs/process-only:
+The repository is past a blank-slate MVP state:
 
-- imported the canonical control docs and repo-local skills
-- aligned M0 inventory content with the actual monorepo
-- left runtime behavior unchanged
+- baseline import, compile, review, passport, visa, export, and avatar flows already exist in code and tests
+- current work is release hardening and narrowing the exposed user-facing surface to the intended MVP mental model
 
-Default starting instruction unless the human says otherwise:
+Default release-candidate instruction unless the human says otherwise:
 
-- do **M1 only** next
-- do **not** start M2+ without explicit instruction
+- align docs and milestone status to implemented reality
+- tighten top-level UI exposure without deleting compatible routes
+- keep `npm run verify` green throughout
