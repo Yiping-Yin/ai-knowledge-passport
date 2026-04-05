@@ -8,3 +8,8 @@ Baseline review focus:
 - Product behavior alignment with documented intent
 - Documentation accuracy relative to repository state
 - Verification coverage via `npm run verify`
+
+Additional reference:
+
+- [Debug & Test Matrix](./debug-test-matrix.md)
+

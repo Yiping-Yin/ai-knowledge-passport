@@ -46,6 +46,7 @@ Status: in progress
 
 - Resolve TypeScript compatibility issue causing `npm run verify` failure (`TS5103` on `--ignoreDeprecations`).
 - Confirm `npm run typecheck`, `npm run test`, and `npm run build` all succeed from repo root.
+- Maintain/update `docs/review/debug-test-matrix.md` with any recurring triage patterns discovered during unblocking.
 - Record any env/version requirements discovered while unblocking.
 
 ### Exit criteria

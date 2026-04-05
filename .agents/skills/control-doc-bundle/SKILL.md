@@ -12,8 +12,9 @@ Apply or refresh the repository control-document bundle without changing runtime
    - `plans/mvp_execplan.md`
 2. Keep `docs/spec/Documentation.md` synchronized to observable repo state.
 3. Make only light alignment edits to existing long-form context docs.
-4. Run `npm run verify` before opening a PR.
-5. Confirm no transport artifacts (zip/temporary extracted folders) are committed.
+4. Keep `docs/review/debug-test-matrix.md` aligned when new recurring verification/debug patterns are identified.
+5. Run `npm run verify` before opening a PR.
+6. Confirm no transport artifacts (zip/temporary extracted folders) are committed.
 
 ## Expected PR shape
 
