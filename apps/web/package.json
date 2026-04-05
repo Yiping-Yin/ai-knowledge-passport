@@ -9,7 +9,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "worker": "tsx scripts/worker.ts"
+    "worker": "tsx scripts/worker.ts",
+    "demo:seed": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
     "@ai-knowledge-passport/shared": "file:../../packages/shared",

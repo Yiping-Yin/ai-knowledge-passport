@@ -52,6 +52,15 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
   }
 
   const visa = access.visa;
+  const passportContext = visa.machineManifest && typeof visa.machineManifest === "object"
+    ? (visa.machineManifest as {
+        passportContext?: {
+          focusCard?: { title?: string; goal?: string } | null;
+          capabilitySignals?: Array<{ topic?: string; observedPractice?: string; currentGaps?: string }>;
+          mistakePatterns?: Array<{ topic?: string; description?: string }>;
+        };
+      }).passportContext ?? null
+    : null;
 
   return (
     <main className="mx-auto min-h-screen max-w-5xl px-5 py-10">
@@ -75,6 +84,7 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
                 ? `machine downloads ${visa.machineDownloadCount}/${visa.maxMachineDownloads}`
                 : `machine downloads ${visa.machineDownloadCount}`}
             </StatusBadge>
+            <StatusBadge>read-only</StatusBadge>
           </div>
           {visa.allowMachineDownload ? (
             <a className="mt-6 inline-flex rounded-full border border-[var(--line)] px-4 py-2 text-sm" href={visa.machinePath ?? "#"}>
@@ -82,6 +92,44 @@ export default async function PublicVisaPage(props: { params: Promise<{ token: s
             </a>
           ) : null}
         </section>
+
+        {passportContext ? (
+          <section className="rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8">
+            <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Mounted context</p>
+            <h2 className="mt-3 text-2xl font-semibold">What this AI should understand first</h2>
+            <div className="mt-6 grid gap-6 lg:grid-cols-3">
+              <div className="rounded-3xl border border-[var(--line)] bg-white/60 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Active Focus</p>
+                <p className="mt-3 text-sm font-medium">{passportContext.focusCard?.title ?? "No active focus"}</p>
+                {passportContext.focusCard?.goal ? <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{passportContext.focusCard.goal}</p> : null}
+              </div>
+              <div className="rounded-3xl border border-[var(--line)] bg-white/60 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Capability Signals</p>
+                <div className="mt-3 space-y-3">
+                  {(passportContext.capabilitySignals ?? []).slice(0, 3).map((signal, index) => (
+                    <article key={`${signal.topic ?? "signal"}-${index}`} className="text-sm">
+                      <p className="font-medium">{signal.topic ?? "Untitled"}</p>
+                      <p className="mt-1 text-[var(--muted)]">{signal.observedPractice ?? ""}</p>
+                    </article>
+                  ))}
+                  {(passportContext.capabilitySignals ?? []).length === 0 ? <p className="text-sm text-[var(--muted)]">No signals included.</p> : null}
+                </div>
+              </div>
+              <div className="rounded-3xl border border-[var(--line)] bg-white/60 p-5">
+                <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Blind Spots</p>
+                <div className="mt-3 space-y-3">
+                  {(passportContext.mistakePatterns ?? []).slice(0, 3).map((mistake, index) => (
+                    <article key={`${mistake.topic ?? "mistake"}-${index}`} className="text-sm">
+                      <p className="font-medium">{mistake.topic ?? "Untitled"}</p>
+                      <p className="mt-1 text-[var(--muted)]">{mistake.description ?? ""}</p>
+                    </article>
+                  ))}
+                  {(passportContext.mistakePatterns ?? []).length === 0 ? <p className="text-sm text-[var(--muted)]">No blind spots included.</p> : null}
+                </div>
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         <section className="rounded-[32px] border border-[var(--line)] bg-[var(--surface)] p-8">
           <div className="prose prose-sm max-w-none">
