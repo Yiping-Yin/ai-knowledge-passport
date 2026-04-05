@@ -1,19 +1,29 @@
 # PLANS.md
 
-This file defines plan requirements for this repository.
+This repository uses plans as executable contracts.
 
 ## Plan requirements
 
-Every execution plan should:
+Every plan must:
 
 1. Start from observed repository state (no `TODO` / `UNKNOWN` placeholders for discoverable facts).
-2. Separate docs/process changes from runtime/API/schema changes.
-3. Include a verification section centered on `npm run verify`.
-4. Track status explicitly (`not started`, `in progress`, `blocked`, `done`).
-5. Link to concrete files and commands so another contributor can execute the plan without guesswork.
+2. State scope explicitly: `docs/process only` vs `runtime/API/schema`.
+3. Include entry/exit criteria for each milestone.
+4. Include a verification block centered on `npm run verify` (or explain blockers).
+5. Track status with one of: `not started`, `in progress`, `blocked`, `done`.
+6. Link to concrete files and commands so another contributor can execute without guesswork.
 
 ## Plan lifecycle
 
-- Draft or update plans in `plans/`.
-- Keep one canonical active MVP plan at `plans/mvp_execplan.md`.
-- When reality changes (stack, paths, commands, CI), update the plan in the same PR if practical.
+- Canonical active execution plan: `plans/mvp_execplan.md`.
+- If implementation reality changes (stack/paths/scripts/CI), update the active plan in the same PR.
+- If a milestone is blocked, document the blocker, owner, and unblock condition.
+
+## Definition of done (plan-level)
+
+A milestone is `done` only when all are true:
+
+- Acceptance criteria are satisfied.
+- Required tests/checks have been run and recorded.
+- Relevant docs are updated.
+- Open risks are explicitly captured with next actions.

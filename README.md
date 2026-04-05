@@ -281,6 +281,13 @@ For canonical contributor workflow and planning guidance, start here:
 - [PLANS.md](./PLANS.md)
 - [plans/mvp_execplan.md](./plans/mvp_execplan.md)
 
+## MVP Completion Roadmap
+
+For the current milestone-by-milestone path to finish the MVP, see:
+
+- [plans/mvp_execplan.md](./plans/mvp_execplan.md)
+- [docs/review/mvp-release-checklist.md](./docs/review/mvp-release-checklist.md)
+
 ## Contributing
 
 Contributions of code, documentation, tests, fixtures, and design ideas are welcome.
