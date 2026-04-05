@@ -4,7 +4,10 @@ import type { ResearchQuery } from "@ai-knowledge-passport/shared";
 
 import { writeAuditLog } from "./audit";
 import { createId, nowIso } from "./common";
+import { getActiveFocusCard } from "./focus-cards";
 import { searchKnowledge } from "./search";
+import { listCapabilitySignals, listMistakePatterns } from "./signals";
+import { defaultWorkspaceId } from "./workspaces";
 
 type ResearchWarning = {
   code: "insufficient_evidence" | "conflicting_evidence" | "narrow_coverage";
@@ -45,8 +48,16 @@ export async function answerResearchQuery(context: AppContext, query: ResearchQu
   const searchResult = await searchKnowledge(context, {
     q: query.question,
     limit: query.limit,
-    projectKey: query.projectKey
+    projectKey: query.projectKey,
+    workspaceId: query.workspaceId
   });
+
+  const workspaceId = query.workspaceId ?? defaultWorkspaceId;
+  const [activeFocusCard, acceptedSignals, acceptedMistakes] = await Promise.all([
+    getActiveFocusCard(context, workspaceId),
+    listCapabilitySignals(context, { workspaceId, status: "accepted", limit: 4 }),
+    listMistakePatterns(context, { workspaceId, status: "accepted", limit: 4 })
+  ]);
 
   const fragmentEvidence = searchResult.fragments.map((fragment) => ({
     refId: fragment.id,
@@ -126,7 +137,18 @@ export async function answerResearchQuery(context: AppContext, query: ResearchQu
         }))
       }
     : await context.provider.generateAnswer({
-        question: query.question,
+        question: [
+          activeFocusCard
+            ? `Active focus:\n- ${activeFocusCard.title}\n- Goal: ${activeFocusCard.goal}\n- Timeframe: ${activeFocusCard.timeframe}\n- Priority: ${activeFocusCard.priority}`
+            : "",
+          acceptedSignals.length
+            ? `Capability signals:\n${acceptedSignals.map((signal) => `- ${signal.topic}: ${signal.observedPractice} | Gaps: ${signal.currentGaps}`).join("\n")}`
+            : "",
+          acceptedMistakes.length
+            ? `Mistake patterns:\n${acceptedMistakes.map((mistake) => `- ${mistake.topic}: ${mistake.description}`).join("\n")}`
+            : "",
+          `User question:\n${query.question}`
+        ].filter(Boolean).join("\n\n"),
         evidence
       });
 

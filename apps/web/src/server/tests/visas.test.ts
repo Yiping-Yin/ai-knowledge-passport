@@ -36,6 +36,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
@@ -64,6 +65,7 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
     id: sourceId,
     type: "markdown",
     title: "Visa Source",
+    workspaceId: "ws_personal",
     originUrl: "https://example.com/source",
     createdAt: timestamp,
     importedAt: timestamp,
@@ -82,6 +84,7 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
     id: nodeId,
     nodeType: "summary",
     title: "Visa Node",
+    workspaceId: "ws_personal",
     summary: "Node summary",
     bodyMd: "# Visa Node\n\nNode body",
     status: "accepted",
@@ -98,6 +101,7 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
     id: cardId,
     cardType: "knowledge",
     title: "Visa Card",
+    workspaceId: "ws_personal",
     claim: "Visa cards package context for a specific audience.",
     evidenceSummary: "Evidence stays traceable while the bundle stays scoped.",
     userView: "This is a good shareable layer.",
@@ -112,6 +116,7 @@ async function seedVisaFixtures(context: ReturnType<typeof createAppContext>) {
   await context.db.insert(passportSnapshots).values({
     id: passportId,
     title: "Visa Passport",
+    workspaceId: "ws_personal",
     humanMarkdown: "# Visa Passport",
     machineManifestJson: JSON.stringify({ title: "Visa Passport" }),
     includeNodeIdsJson: JSON.stringify([nodeId]),

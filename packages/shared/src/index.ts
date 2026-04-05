@@ -8,6 +8,12 @@ export const privacyLevels = [
   "L4_AGENT_ONLY"
 ] as const;
 
+export const workspaceTypes = [
+  "personal",
+  "work",
+  "project"
+] as const;
+
 export const sourceTypes = [
   "markdown",
   "txt",
@@ -138,6 +144,23 @@ export const exportPackageStatuses = [
   "failed"
 ] as const;
 
+export const capabilitySignalStatuses = [
+  "pending_review",
+  "accepted",
+  "rejected"
+] as const;
+
+export const mistakePatternStatuses = [
+  "pending_review",
+  "accepted",
+  "rejected"
+] as const;
+
+export const focusCardStatuses = [
+  "active",
+  "archived"
+] as const;
+
 export const objectPolicyObjectTypes = [
   "passport_snapshot",
   "visa_bundle",
@@ -148,6 +171,7 @@ export const objectPolicyObjectTypes = [
 
 export const sourceTypeSchema = z.enum(sourceTypes);
 export const privacyLevelSchema = z.enum(privacyLevels);
+export const workspaceTypeSchema = z.enum(workspaceTypes);
 export const sourceStatusSchema = z.enum(sourceStatuses);
 export const nodeTypeSchema = z.enum(nodeTypes);
 export const nodeStatusSchema = z.enum(nodeStatuses);
@@ -167,12 +191,21 @@ export const avatarSimulationStatusSchema = z.enum(avatarSimulationStatuses);
 export const avatarLiveSessionStatusSchema = z.enum(avatarLiveSessionStatuses);
 export const avatarLiveMessageRoleSchema = z.enum(avatarLiveMessageRoles);
 export const exportPackageStatusSchema = z.enum(exportPackageStatuses);
+export const capabilitySignalStatusSchema = z.enum(capabilitySignalStatuses);
+export const mistakePatternStatusSchema = z.enum(mistakePatternStatuses);
+export const focusCardStatusSchema = z.enum(focusCardStatuses);
 export const objectPolicyObjectTypeSchema = z.enum(objectPolicyObjectTypes);
+
+export const workspaceCreateSchema = z.object({
+  title: z.string().min(1),
+  workspaceType: workspaceTypeSchema.default("personal")
+});
 
 export const importPayloadSchema = z.object({
   type: sourceTypeSchema,
   title: z.string().min(1),
   originUrl: z.string().url().optional(),
+  workspaceId: z.string().optional(),
   projectKey: z.string().trim().min(1).optional(),
   privacyLevel: privacyLevelSchema.default("L1_LOCAL_AI"),
   textContent: z.string().optional(),
@@ -187,6 +220,7 @@ export const compileRequestSchema = z.object({
 
 export const researchQuerySchema = z.object({
   question: z.string().min(3),
+  workspaceId: z.string().optional(),
   projectKey: z.string().optional(),
   tags: z.array(z.string()).default([]),
   limit: z.number().int().positive().max(20).default(8)
@@ -206,6 +240,7 @@ export const outputCreateSchema = z.object({
 export const postcardCreateSchema = z.object({
   title: z.string().min(1),
   cardType: postcardTypeSchema,
+  workspaceId: z.string().optional(),
   claim: z.string().min(1),
   evidenceSummary: z.string().min(1),
   userView: z.string().min(1),
@@ -216,9 +251,44 @@ export const postcardCreateSchema = z.object({
 
 export const passportGenerateSchema = z.object({
   title: z.string().default("Knowledge Passport"),
+  workspaceId: z.string().optional(),
   includeNodeIds: z.array(z.string()).default([]),
   includePostcardIds: z.array(z.string()).default([]),
   privacyFloor: privacyLevelSchema.default("L1_LOCAL_AI")
+});
+
+export const capabilitySignalCreateSchema = z.object({
+  workspaceId: z.string().min(1),
+  topic: z.string().min(1),
+  observedPractice: z.string().min(1),
+  currentGaps: z.string().min(1),
+  confidence: z.number().min(0).max(1).default(0.5),
+  evidenceNodeIds: z.array(z.string()).default([]),
+  evidenceFragmentIds: z.array(z.string()).default([]),
+  status: capabilitySignalStatusSchema.default("pending_review")
+});
+
+export const mistakePatternCreateSchema = z.object({
+  workspaceId: z.string().min(1),
+  topic: z.string().min(1),
+  description: z.string().min(1),
+  fixSuggestions: z.string().min(1),
+  recurrenceCount: z.number().int().positive().default(1),
+  exampleNodeIds: z.array(z.string()).default([]),
+  exampleFragmentIds: z.array(z.string()).default([]),
+  privacyLevel: privacyLevelSchema.default("L1_LOCAL_AI"),
+  status: mistakePatternStatusSchema.default("pending_review")
+});
+
+export const focusCardCreateSchema = z.object({
+  workspaceId: z.string().min(1),
+  title: z.string().min(1),
+  goal: z.string().min(1),
+  timeframe: z.string().default(""),
+  priority: z.string().default("medium"),
+  successCriteria: z.string().default(""),
+  relatedTopics: z.array(z.string()).default([]),
+  status: focusCardStatusSchema.default("active")
 });
 
 export const visaRedactionSchema = z.object({
@@ -342,6 +412,7 @@ export const backupRestoreSchema = z.object({
 });
 
 export type PrivacyLevel = z.infer<typeof privacyLevelSchema>;
+export type WorkspaceType = z.infer<typeof workspaceTypeSchema>;
 export type SourceType = z.infer<typeof sourceTypeSchema>;
 export type SourceStatus = z.infer<typeof sourceStatusSchema>;
 export type NodeType = z.infer<typeof nodeTypeSchema>;
@@ -362,12 +433,19 @@ export type AvatarSimulationStatus = z.infer<typeof avatarSimulationStatusSchema
 export type AvatarLiveSessionStatus = z.infer<typeof avatarLiveSessionStatusSchema>;
 export type AvatarLiveMessageRole = z.infer<typeof avatarLiveMessageRoleSchema>;
 export type ExportPackageStatus = z.infer<typeof exportPackageStatusSchema>;
+export type CapabilitySignalStatus = z.infer<typeof capabilitySignalStatusSchema>;
+export type MistakePatternStatus = z.infer<typeof mistakePatternStatusSchema>;
+export type FocusCardStatus = z.infer<typeof focusCardStatusSchema>;
 export type ObjectPolicyObjectType = z.infer<typeof objectPolicyObjectTypeSchema>;
+export type WorkspaceCreateInput = z.infer<typeof workspaceCreateSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
 export type ResearchQuery = z.infer<typeof researchQuerySchema>;
 export type OutputCreateInput = z.infer<typeof outputCreateSchema>;
 export type PostcardCreateInput = z.infer<typeof postcardCreateSchema>;
 export type PassportGenerateInput = z.infer<typeof passportGenerateSchema>;
+export type CapabilitySignalCreateInput = z.infer<typeof capabilitySignalCreateSchema>;
+export type MistakePatternCreateInput = z.infer<typeof mistakePatternCreateSchema>;
+export type FocusCardCreateInput = z.infer<typeof focusCardCreateSchema>;
 export type VisaRedactionConfig = z.infer<typeof visaRedactionSchema>;
 export type VisaBundleCreateInput = z.infer<typeof visaBundleCreateSchema>;
 export type VisaFeedbackCreateInput = z.infer<typeof visaFeedbackCreateSchema>;
@@ -383,6 +461,57 @@ export type AgentPackExportCreateInput = z.infer<typeof agentPackExportCreateSch
 export type ObjectPolicyUpsertInput = z.infer<typeof objectPolicyUpsertSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
 export type BackupRestoreInput = z.infer<typeof backupRestoreSchema>;
+
+export type WorkspaceRecord = {
+  id: string;
+  title: string;
+  workspaceType: WorkspaceType;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CapabilitySignal = {
+  id: string;
+  workspaceId: string;
+  topic: string;
+  observedPractice: string;
+  currentGaps: string;
+  confidence: number;
+  evidenceNodeIds: string[];
+  evidenceFragmentIds: string[];
+  status: CapabilitySignalStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MistakePattern = {
+  id: string;
+  workspaceId: string;
+  topic: string;
+  description: string;
+  fixSuggestions: string;
+  recurrenceCount: number;
+  exampleNodeIds: string[];
+  exampleFragmentIds: string[];
+  privacyLevel: PrivacyLevel;
+  status: MistakePatternStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FocusCard = {
+  id: string;
+  workspaceId: string;
+  title: string;
+  goal: string;
+  timeframe: string;
+  priority: string;
+  successCriteria: string;
+  relatedTopics: string[];
+  status: FocusCardStatus;
+  createdAt: string;
+  updatedAt: string;
+};
 
 export type VisaBundleSummary = {
   id: string;

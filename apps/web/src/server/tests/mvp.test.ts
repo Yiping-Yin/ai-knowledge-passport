@@ -91,6 +91,13 @@ class FakeProvider implements ModelProvider {
     };
   }
 
+  async generateLearnerState() {
+    return {
+      capabilitySignals: [],
+      mistakePatterns: []
+    };
+  }
+
   async generateAvatarReply(input: Parameters<ModelProvider["generateAvatarReply"]>[0]) {
     return {
       answerMd: `Avatar reply grounded in pack evidence: ${input.evidence[0]?.text ?? ""}`,
@@ -211,6 +218,7 @@ describe("knowledge passport MVP flow", () => {
       id: existingNodeId,
       nodeType: "summary",
       title: "AI Passport Notes / Summary",
+      workspaceId: "ws_personal",
       summary: "Existing knowledge node",
       bodyMd: "# AI Passport Notes\n\nExisting knowledge body",
       status: "accepted",
@@ -309,6 +317,7 @@ describe("knowledge passport MVP flow", () => {
         id: targetNodeId,
         nodeType: "theme",
         title: "Knowledge Passport",
+        workspaceId: "ws_personal",
         summary: "Primary node",
         bodyMd: "Primary body",
         status: "accepted",
@@ -324,6 +333,7 @@ describe("knowledge passport MVP flow", () => {
         id: pendingNodeId,
         nodeType: "theme",
         title: "Knowledge Passport Candidate",
+        workspaceId: "ws_personal",
         summary: "Pending node",
         bodyMd: "Pending node body",
         status: "pending_review",
@@ -339,6 +349,7 @@ describe("knowledge passport MVP flow", () => {
         id: relatedNodeId,
         nodeType: "concept",
         title: "Evidence Chain",
+        workspaceId: "ws_personal",
         summary: "Related node",
         bodyMd: "Related node body",
         status: "accepted",

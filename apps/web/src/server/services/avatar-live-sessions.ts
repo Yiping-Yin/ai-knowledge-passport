@@ -24,6 +24,7 @@ import { getAvatarProfile } from "./avatars";
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { resolveObjectPolicy } from "./policies";
+import { buildWorkspaceContextBlock } from "./signals";
 
 type AvatarLiveSessionRow = typeof avatarLiveSessions.$inferSelect;
 type AvatarLiveMessageRow = typeof avatarLiveMessages.$inferSelect;
@@ -305,6 +306,7 @@ export async function postAvatarLiveMessage(
   }
 
   const scopedEvidence = await resolvePackEvidence(context, pack);
+  const contextWorkspaceId = scopedEvidence.map((entry) => entry.workspaceId).find(Boolean) ?? null;
   const classification = classifyAvatarQuestion(avatar, scopedEvidence, input.contentMd);
 
   const transcriptSnapshot = await getAvatarLiveSession(context, sessionId);
@@ -376,7 +378,10 @@ export async function postAvatarLiveMessage(
     avatarTitle: avatar.title,
     intro: avatar.intro,
     toneRules: avatar.toneRules,
-    question: buildAvatarPromptQuestion(transcript, input.contentMd),
+    question: [
+      await buildWorkspaceContextBlock(context, contextWorkspaceId),
+      buildAvatarPromptQuestion(transcript, input.contentMd)
+    ].filter(Boolean).join("\n\n"),
     evidence: classification.evidence.map((entry) => ({
       refId: entry.id,
       title: entry.title,

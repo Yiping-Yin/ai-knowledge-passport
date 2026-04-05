@@ -14,6 +14,7 @@ export async function POST(request: Request) {
       type: formData.get("type"),
       title: formData.get("title"),
       originUrl: formData.get("originUrl") || undefined,
+      workspaceId: formData.get("workspaceId") || undefined,
       projectKey: formData.get("projectKey") || undefined,
       privacyLevel: formData.get("privacyLevel"),
       textContent: formData.get("textContent") || undefined,

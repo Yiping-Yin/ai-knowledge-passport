@@ -7,8 +7,11 @@ import { passportSnapshots, postcards, wikiNodes } from "@/server/db/schema";
 
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray } from "./common";
+import { getActiveFocusCard } from "./focus-cards";
 import { enqueueJob, maybeRunInlineJobs } from "./jobs";
 import { canIncludeInPassport } from "./privacy";
+import { listCapabilitySignals, listMistakePatterns } from "./signals";
+import { getWorkspace } from "./workspaces";
 
 function buildThemeMap(tags: string[]) {
   return Array.from(new Set(tags.filter(Boolean))).sort();
@@ -17,6 +20,7 @@ function buildThemeMap(tags: string[]) {
 function buildMachineManifest(input: {
   passportId: string;
   title: string;
+  workspaceId: string;
   privacyFloor: PrivacyLevel;
   nodes: Array<{
     id: string;
@@ -34,6 +38,30 @@ function buildMachineManifest(input: {
     privacyLevel: string;
     relatedNodeIds: string[];
   }>;
+  capabilitySignals: Array<{
+    id: string;
+    topic: string;
+    observedPractice: string;
+    currentGaps: string;
+    confidence: number;
+  }>;
+  mistakePatterns: Array<{
+    id: string;
+    topic: string;
+    description: string;
+    fixSuggestions: string;
+    recurrenceCount: number;
+    privacyLevel: string;
+  }>;
+  focusCard: {
+    id: string;
+    title: string;
+    goal: string;
+    timeframe: string;
+    priority: string;
+    successCriteria: string;
+    relatedTopics: string[];
+  } | null;
   aiSummary: Record<string, unknown>;
 }) {
   const allTags = input.nodes.flatMap((node) => node.tags);
@@ -41,11 +69,15 @@ function buildMachineManifest(input: {
     passportId: input.passportId,
     title: input.title,
     generatedAt: nowIso(),
+    workspaceId: input.workspaceId,
     privacyFloor: input.privacyFloor,
     themeMap: buildThemeMap(allTags),
     stats: {
       nodeCount: input.nodes.length,
-      postcardCount: input.postcards.length
+      postcardCount: input.postcards.length,
+      capabilitySignalCount: input.capabilitySignals.length,
+      mistakePatternCount: input.mistakePatterns.length,
+      hasActiveFocusCard: Boolean(input.focusCard)
     },
     nodes: input.nodes.map((node) => ({
       id: node.id,
@@ -63,6 +95,22 @@ function buildMachineManifest(input: {
       privacyLevel: card.privacyLevel,
       relatedNodeIds: card.relatedNodeIds
     })),
+    capabilitySignals: input.capabilitySignals.map((signal) => ({
+      id: signal.id,
+      topic: signal.topic,
+      observedPractice: signal.observedPractice,
+      currentGaps: signal.currentGaps,
+      confidence: signal.confidence
+    })),
+    mistakePatterns: input.mistakePatterns.map((mistake) => ({
+      id: mistake.id,
+      topic: mistake.topic,
+      description: mistake.description,
+      fixSuggestions: mistake.fixSuggestions,
+      recurrenceCount: mistake.recurrenceCount,
+      privacyLevel: mistake.privacyLevel
+    })),
+    focusCard: input.focusCard,
     aiSummary: input.aiSummary
   };
 }
@@ -94,12 +142,13 @@ export async function createPassportSnapshot(context: AppContext, input: Record<
   }
 
   const payload = input as PassportGenerateInput;
+  const workspace = await getWorkspace(context, payload.workspaceId);
   const allNodes = payload.includeNodeIds.length
     ? await context.db.query.wikiNodes.findMany({
         where: inArray(wikiNodes.id, payload.includeNodeIds)
       })
     : await context.db.query.wikiNodes.findMany({
-        where: eq(wikiNodes.status, "accepted")
+        where: eq(wikiNodes.workspaceId, workspace.id)
       });
 
   const allCards = payload.includePostcardIds.length
@@ -109,11 +158,17 @@ export async function createPassportSnapshot(context: AppContext, input: Record<
     : await context.db.query.postcards.findMany();
 
   const nodes = allNodes.filter((node) =>
-    canIncludeInPassport(node.privacyLevel as PrivacyLevel, payload.privacyFloor)
+    node.workspaceId === workspace.id && node.status === "accepted" && canIncludeInPassport(node.privacyLevel as PrivacyLevel, payload.privacyFloor)
   );
   const cards = allCards.filter((card) =>
-    canIncludeInPassport(card.privacyLevel as PrivacyLevel, payload.privacyFloor)
+    card.workspaceId === workspace.id && canIncludeInPassport(card.privacyLevel as PrivacyLevel, payload.privacyFloor)
   );
+
+  const [acceptedSignals, acceptedMistakes, activeFocusCard] = await Promise.all([
+    listCapabilitySignals(context, { workspaceId: workspace.id, status: "accepted", limit: 20 }),
+    listMistakePatterns(context, { workspaceId: workspace.id, status: "accepted", limit: 20 }),
+    getActiveFocusCard(context, workspace.id)
+  ]);
 
   const generated = await context.provider.generatePassport({
     title: payload.title,
@@ -129,6 +184,27 @@ export async function createPassportSnapshot(context: AppContext, input: Record<
       userView: card.userView,
       cardType: card.cardType as never
     })),
+    capabilitySignals: acceptedSignals.map((signal) => ({
+      topic: signal.topic,
+      observedPractice: signal.observedPractice,
+      currentGaps: signal.currentGaps,
+      confidence: signal.confidence
+    })),
+    mistakePatterns: acceptedMistakes.map((mistake) => ({
+      topic: mistake.topic,
+      description: mistake.description,
+      fixSuggestions: mistake.fixSuggestions,
+      recurrenceCount: mistake.recurrenceCount
+    })),
+    focusCard: activeFocusCard
+      ? {
+          title: activeFocusCard.title,
+          goal: activeFocusCard.goal,
+          timeframe: activeFocusCard.timeframe,
+          priority: activeFocusCard.priority,
+          successCriteria: activeFocusCard.successCriteria
+        }
+      : null,
     privacyFloor: payload.privacyFloor
   });
 
@@ -136,6 +212,7 @@ export async function createPassportSnapshot(context: AppContext, input: Record<
   const machineManifest = buildMachineManifest({
     passportId,
     title: payload.title,
+    workspaceId: workspace.id,
     privacyFloor: payload.privacyFloor,
     nodes: nodes.map((node) => ({
       id: node.id,
@@ -153,12 +230,39 @@ export async function createPassportSnapshot(context: AppContext, input: Record<
       privacyLevel: card.privacyLevel,
       relatedNodeIds: parseJsonArray<string>(card.relatedNodeIdsJson)
     })),
+    capabilitySignals: acceptedSignals.map((signal) => ({
+      id: signal.id,
+      topic: signal.topic,
+      observedPractice: signal.observedPractice,
+      currentGaps: signal.currentGaps,
+      confidence: signal.confidence
+    })),
+    mistakePatterns: acceptedMistakes.map((mistake) => ({
+      id: mistake.id,
+      topic: mistake.topic,
+      description: mistake.description,
+      fixSuggestions: mistake.fixSuggestions,
+      recurrenceCount: mistake.recurrenceCount,
+      privacyLevel: mistake.privacyLevel
+    })),
+    focusCard: activeFocusCard
+      ? {
+          id: activeFocusCard.id,
+          title: activeFocusCard.title,
+          goal: activeFocusCard.goal,
+          timeframe: activeFocusCard.timeframe,
+          priority: activeFocusCard.priority,
+          successCriteria: activeFocusCard.successCriteria,
+          relatedTopics: activeFocusCard.relatedTopics
+        }
+      : null,
     aiSummary: generated.machineManifest
   });
 
   await context.db.insert(passportSnapshots).values({
     id: passportId,
     title: payload.title,
+    workspaceId: workspace.id,
     humanMarkdown: generated.humanMarkdown,
     machineManifestJson: JSON.stringify(machineManifest),
     includeNodeIdsJson: JSON.stringify(nodes.map((node) => node.id)),

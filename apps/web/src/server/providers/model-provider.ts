@@ -70,10 +70,36 @@ export interface ModelProvider {
     title: string;
     nodes: Array<{ title: string; summary: string; bodyMd: string; tags: string[] }>;
     postcards: Array<{ title: string; claim: string; userView: string; cardType: PostcardType }>;
+    capabilitySignals: Array<{ topic: string; observedPractice: string; currentGaps: string; confidence: number }>;
+    mistakePatterns: Array<{ topic: string; description: string; fixSuggestions: string; recurrenceCount: number }>;
+    focusCard: { title: string; goal: string; timeframe: string; priority: string; successCriteria: string } | null;
     privacyFloor: PrivacyLevel;
   }): Promise<{
     humanMarkdown: string;
     machineManifest: Record<string, unknown>;
+  }>;
+  generateLearnerState(input: {
+    workspaceTitle: string;
+    nodes: Array<{ id: string; title: string; summary: string; bodyMd: string; tags: string[]; projectKey?: string | null }>;
+    claims: Array<{ id: string; title: string; statement: string; confidence: number; tags: string[]; sourceFragmentIds: string[]; nodeId?: string | null }>;
+  }): Promise<{
+    capabilitySignals: Array<{
+      topic: string;
+      observedPractice: string;
+      currentGaps: string;
+      confidence: number;
+      evidenceNodeIds: string[];
+      evidenceFragmentIds: string[];
+    }>;
+    mistakePatterns: Array<{
+      topic: string;
+      description: string;
+      fixSuggestions: string;
+      recurrenceCount: number;
+      exampleNodeIds: string[];
+      exampleFragmentIds: string[];
+      privacyLevel: PrivacyLevel;
+    }>;
   }>;
   generateAvatarReply(input: {
     avatarTitle: string;

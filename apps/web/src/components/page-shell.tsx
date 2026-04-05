@@ -1,18 +1,23 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Activity, BadgeCheck, BookOpenText, Bot, Database, Download, FileSearch, Files, HeartPulse, Key, LayoutDashboard, LibraryBig, ScrollText, Shield, SlidersHorizontal, Waypoints, Workflow } from "lucide-react";
+import { Activity, BadgeCheck, BookOpenText, Bot, Database, Download, FileSearch, Files, HeartPulse, Key, LayoutDashboard, LibraryBig, ScrollText, Shield, SlidersHorizontal, Target, Waypoints, Workflow } from "lucide-react";
 import clsx from "clsx";
 
-const navigation = [
+const coreNavigation = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/inbox", label: "Inbox", icon: Files },
   { href: "/knowledge", label: "Knowledge", icon: LibraryBig },
-  { href: "/review", label: "Review Queue", icon: BadgeCheck },
-  { href: "/research", label: "Research", icon: FileSearch },
-  { href: "/outputs", label: "Outputs", icon: BookOpenText },
+  { href: "/signals", label: "Signals", icon: Target },
   { href: "/postcards", label: "Postcards", icon: Activity },
-  { href: "/visas", label: "Visas", icon: Key },
+  { href: "/passport", label: "Passport", icon: Shield },
+  { href: "/review", label: "Review Queue", icon: BadgeCheck },
+  { href: "/research", label: "Research", icon: FileSearch }
+];
+
+const advancedNavigation = [
+  { href: "/outputs", label: "Outputs", icon: BookOpenText },
+  { href: "/visas", label: "Mount Center", icon: Key },
   { href: "/avatars", label: "Avatars", icon: Bot },
   { href: "/exports", label: "Exports", icon: Download },
   { href: "/policies", label: "Policies", icon: SlidersHorizontal },
@@ -21,7 +26,7 @@ const navigation = [
   { href: "/health", label: "Health Center", icon: HeartPulse },
   { href: "/visuals", label: "Visuals", icon: Waypoints },
   { href: "/audit", label: "Audit Log", icon: ScrollText },
-  { href: "/passport", label: "Passport & Backup", icon: Shield }
+  { href: "/fragments", label: "Fragments", icon: FileSearch }
 ];
 
 export function PageShell(props: { currentPath: string; title: string; subtitle: string; children: ReactNode }) {
@@ -34,40 +39,70 @@ export function PageShell(props: { currentPath: string; title: string; subtitle:
               <Database size={24} />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">Local-first</p>
-              <h1 className="mt-1 text-xl font-semibold">AI Knowledge Passport</h1>
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--muted)]">AI-mountable</p>
+              <h1 className="mt-1 text-xl font-semibold">Knowledge Base</h1>
               <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                Raw materials, the local wiki, research outputs, passport snapshots, and backups all stay under local control.
+                Help any AI understand your foundation, current goal, and blind spots under local control and explicit authorization.
               </p>
             </div>
           </div>
 
-          <nav className="space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              const active = props.currentPath === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={clsx(
-                    "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
-                    active
-                      ? "bg-[var(--accent)] text-white shadow-lg shadow-green-900/20"
-                      : "text-[var(--muted)] hover:bg-white/70 hover:text-[var(--ink)]"
-                  )}
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+          <nav className="space-y-6">
+            <div>
+              <p className="mb-2 px-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Core</p>
+              <div className="space-y-2">
+                {coreNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = props.currentPath === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={clsx(
+                        "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
+                        active
+                          ? "bg-[var(--accent)] text-white shadow-lg shadow-green-900/20"
+                          : "text-[var(--muted)] hover:bg-white/70 hover:text-[var(--ink)]"
+                      )}
+                    >
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-2 px-2 text-xs uppercase tracking-[0.2em] text-[var(--muted)]">Advanced</p>
+              <div className="space-y-2">
+                {advancedNavigation.map((item) => {
+                  const Icon = item.icon;
+                  const active = props.currentPath === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={clsx(
+                        "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
+                        active
+                          ? "bg-[var(--accent)] text-white shadow-lg shadow-green-900/20"
+                          : "text-[var(--muted)] hover:bg-white/70 hover:text-[var(--ink)]"
+                      )}
+                    >
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </nav>
 
           <div className="mt-8 rounded-3xl border border-[var(--line)] bg-[var(--surface-strong)] p-4 text-sm text-[var(--muted)]">
-            <p className="font-medium text-[var(--ink)]">MVP Loop</p>
+            <p className="font-medium text-[var(--ink)]">Primary Loop</p>
             <p className="mt-2 leading-6">
-              Import, compile, research, flowback, postcards, passports, and backups all run directly inside this shell.
+              Import, compile, synthesize signals, publish postcards, generate a passport, and mount only what an AI needs.
             </p>
           </div>
         </aside>

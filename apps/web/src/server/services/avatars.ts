@@ -25,6 +25,7 @@ import { createId, nowIso, parseJsonArray, parseJsonObject } from "./common";
 import { getAgentPackSnapshot } from "./agent-packs";
 import { assertPolicyAllows, resolveObjectPolicy } from "./policies";
 import { buildAvatarPromptQuestion, classifyAvatarQuestion, resolvePackEvidence } from "./avatar-governance";
+import { buildWorkspaceContextBlock } from "./signals";
 
 type AvatarProfileRow = typeof avatarProfiles.$inferSelect;
 type AvatarSimulationSessionRow = typeof avatarSimulationSessions.$inferSelect;
@@ -319,6 +320,7 @@ export async function simulateAvatar(context: AppContext, avatarId: string, inpu
   }
 
   const scopedEvidence = await resolvePackEvidence(context, pack);
+  const contextWorkspaceId = scopedEvidence.map((entry) => entry.workspaceId).find(Boolean) ?? null;
   const classification = classifyAvatarQuestion(profile, scopedEvidence, input.question);
 
   if (classification.kind !== "answered") {
@@ -367,7 +369,10 @@ export async function simulateAvatar(context: AppContext, avatarId: string, inpu
     avatarTitle: profile.title,
     intro: profile.intro,
     toneRules: profile.toneRules,
-    question: buildAvatarPromptQuestion([], input.question),
+    question: [
+      await buildWorkspaceContextBlock(context, contextWorkspaceId),
+      buildAvatarPromptQuestion([], input.question)
+    ].filter(Boolean).join("\n\n"),
     evidence: classification.evidence.map((entry) => ({
       refId: entry.id,
       title: entry.title,

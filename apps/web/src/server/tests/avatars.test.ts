@@ -27,6 +27,7 @@ class FakeProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply(input: Parameters<ModelProvider["generateAvatarReply"]>[0]) {
     return {
       answerMd: `Governed answer: ${input.evidence[0]?.text ?? ""}`,
@@ -66,6 +67,7 @@ async function seedPackFixtures(context: ReturnType<typeof createAppContext>) {
       id: nodeId,
       nodeType: "summary",
       title: "Knowledge Passport",
+      workspaceId: "ws_personal",
       summary: "A knowledge passport compiles private material into reusable, governed context.",
       bodyMd: "The knowledge passport is for governed context and evidence-backed expression.",
       status: "accepted",
@@ -81,6 +83,7 @@ async function seedPackFixtures(context: ReturnType<typeof createAppContext>) {
       id: nodeTwoId,
       nodeType: "summary",
       title: "Pricing Strategy",
+      workspaceId: "ws_personal",
       summary: "Private pricing decisions should not be delegated.",
       bodyMd: "Pricing should remain a forbidden topic for delegated agents.",
       status: "accepted",
@@ -98,6 +101,7 @@ async function seedPackFixtures(context: ReturnType<typeof createAppContext>) {
     id: cardId,
     cardType: "knowledge",
     title: "Passport Card",
+    workspaceId: "ws_personal",
     claim: "Knowledge passports package evidence-based context.",
     evidenceSummary: "Grounded in accepted node summaries.",
     userView: "Use it for controlled sharing.",

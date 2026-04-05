@@ -28,11 +28,20 @@ export function initializeDatabase() {
 
 export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabase>["sqlite"]) {
   sqlite.exec(`
+    create table if not exists workspaces (
+      id text primary key,
+      title text not null,
+      workspace_type text not null,
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists sources (
       id text primary key,
       type text not null,
       title text not null,
       origin_url text,
+      workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict,
       created_at text,
       imported_at text not null,
       file_path text,
@@ -73,6 +82,7 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       claim_type text not null,
       title text not null,
       statement text not null,
+      workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict,
       status text not null,
       confidence real not null default 0,
       source_fragment_ids_json text not null default '[]',
@@ -117,6 +127,7 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       title text not null,
       summary text not null,
       body_md text not null,
+      workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict,
       status text not null,
       source_ids_json text not null default '[]',
       tags_json text not null default '[]',
@@ -150,6 +161,7 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       id text primary key,
       card_type text not null,
       title text not null,
+      workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict,
       claim text not null,
       evidence_summary text not null,
       user_view text not null,
@@ -164,12 +176,56 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
     create table if not exists passport_snapshots (
       id text primary key,
       title text not null,
+      workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict,
       human_markdown text not null,
       machine_manifest_json text not null,
       include_node_ids_json text not null default '[]',
       include_postcard_ids_json text not null default '[]',
       privacy_floor text not null,
       created_at text not null
+    );
+
+    create table if not exists capability_signals (
+      id text primary key,
+      workspace_id text not null references workspaces(id) on delete cascade,
+      topic text not null,
+      observed_practice text not null,
+      current_gaps text not null,
+      confidence real not null default 0,
+      evidence_node_ids_json text not null default '[]',
+      evidence_fragment_ids_json text not null default '[]',
+      status text not null,
+      created_at text not null,
+      updated_at text not null
+    );
+
+    create table if not exists mistake_patterns (
+      id text primary key,
+      workspace_id text not null references workspaces(id) on delete cascade,
+      topic text not null,
+      description text not null,
+      fix_suggestions text not null,
+      recurrence_count integer not null default 1,
+      example_node_ids_json text not null default '[]',
+      example_fragment_ids_json text not null default '[]',
+      privacy_level text not null,
+      status text not null,
+      created_at text not null,
+      updated_at text not null
+    );
+
+    create table if not exists focus_cards (
+      id text primary key,
+      workspace_id text not null references workspaces(id) on delete cascade,
+      title text not null,
+      goal text not null,
+      timeframe text not null default '',
+      priority text not null default 'medium',
+      success_criteria text not null default '',
+      related_topics_json text not null default '[]',
+      status text not null,
+      created_at text not null,
+      updated_at text not null
     );
 
     create table if not exists visa_bundles (
@@ -390,6 +446,11 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
     );
   `);
 
+  sqlite.exec(`
+    insert or ignore into workspaces (id, title, workspace_type, created_at, updated_at)
+    values ('ws_personal', 'Personal', 'personal', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  `);
+
   const sourceFragmentCount = sqlite
     .prepare("select count(*) as count from source_fragments_fts")
     .get() as { count?: number } | undefined;
@@ -417,5 +478,18 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
   ensureColumn(sqlite, "visa_bundles", "max_access_count", "max_access_count integer");
   ensureColumn(sqlite, "visa_bundles", "machine_download_count", "machine_download_count integer not null default 0");
   ensureColumn(sqlite, "visa_bundles", "max_machine_downloads", "max_machine_downloads integer");
+  ensureColumn(sqlite, "sources", "workspace_id", "workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict");
+  ensureColumn(sqlite, "claims", "workspace_id", "workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict");
+  ensureColumn(sqlite, "wiki_nodes", "workspace_id", "workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict");
+  ensureColumn(sqlite, "postcards", "workspace_id", "workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict");
+  ensureColumn(sqlite, "passport_snapshots", "workspace_id", "workspace_id text not null default 'ws_personal' references workspaces(id) on delete restrict");
+
+  sqlite.exec(`
+    update sources set workspace_id = 'ws_personal' where workspace_id is null or workspace_id = '';
+    update claims set workspace_id = 'ws_personal' where workspace_id is null or workspace_id = '';
+    update wiki_nodes set workspace_id = 'ws_personal' where workspace_id is null or workspace_id = '';
+    update postcards set workspace_id = 'ws_personal' where workspace_id is null or workspace_id = '';
+    update passport_snapshots set workspace_id = 'ws_personal' where workspace_id is null or workspace_id = '';
+  `);
 
 }

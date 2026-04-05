@@ -8,15 +8,20 @@ import { SectionCard, StatusBadge } from "@/components/ui";
 import { getAppContext } from "@/server/context";
 import { parseJsonObject } from "@/server/services/common";
 import { listSources } from "@/server/services/sources";
+import { listWorkspaces } from "@/server/services/workspaces";
 
 export default async function InboxPage() {
-  const sources = await listSources(getAppContext());
+  const context = getAppContext();
+  const [sources, workspaces] = await Promise.all([
+    listSources(context),
+    listWorkspaces(context)
+  ]);
 
   return (
     <PageShell currentPath="/inbox" title="Inbox" subtitle="Bring everything into one place and send it into the compile queue">
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <SectionCard title="Import Sources" description="Supports markdown, txt, pdf, url, image, chat transcript, and audio.">
-          <ImportForm />
+          <ImportForm workspaces={workspaces} />
         </SectionCard>
         <SectionCard title="Inbox Queue" description="Each source keeps its origin, privacy level, latest job state, and processing status.">
           <div className="space-y-4">
@@ -42,7 +47,7 @@ export default async function InboxPage() {
                         </StatusBadge>
                       </div>
                       <p className="mt-3 text-sm text-[var(--muted)]">
-                        Privacy: {source.privacyLevel}
+                        Workspace: {source.workspaceId} · Privacy: {source.privacyLevel}
                         {source.projectKey ? ` · Project: ${source.projectKey}` : ""}
                       </p>
                       {normalization ? (

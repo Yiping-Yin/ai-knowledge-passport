@@ -7,7 +7,9 @@ import type { PrivacyLevel, SourceType } from "@ai-knowledge-passport/shared";
 const types: SourceType[] = ["markdown", "txt", "pdf", "url", "image", "chat", "audio"];
 const privacyLevels: PrivacyLevel[] = ["L0_SELF", "L1_LOCAL_AI", "L2_INVITED", "L3_PUBLIC", "L4_AGENT_ONLY"];
 
-export function ImportForm() {
+export function ImportForm(props: {
+  workspaces: Array<{ id: string; title: string; workspaceType: string }>;
+}) {
   const [type, setType] = useState<SourceType>("markdown");
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -58,6 +60,16 @@ export function ImportForm() {
         <label className="space-y-2 text-sm">
           <span>Title</span>
           <input name="title" required className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+        </label>
+        <label className="space-y-2 text-sm">
+          <span>Workspace</span>
+          <select name="workspaceId" defaultValue={props.workspaces[0]?.id ?? "ws_personal"} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+            {props.workspaces.map((workspace) => (
+              <option key={workspace.id} value={workspace.id}>
+                {workspace.title} · {workspace.workspaceType}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="space-y-2 text-sm">
           <span>Project Key</span>

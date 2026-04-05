@@ -30,6 +30,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "avatar answer", citations: [] }; }
 }
 
@@ -57,6 +58,7 @@ async function seedGovernedObjects(context: ReturnType<typeof createAppContext>)
     id: nodeId,
     nodeType: "summary",
     title: "Governed Node",
+    workspaceId: "ws_personal",
     summary: "Node summary",
     bodyMd: "Node body for governed policy tests",
     status: "accepted",
@@ -73,6 +75,7 @@ async function seedGovernedObjects(context: ReturnType<typeof createAppContext>)
     id: cardId,
     cardType: "knowledge",
     title: "Governed Card",
+    workspaceId: "ws_personal",
     claim: "Governed claim",
     evidenceSummary: "Governed evidence",
     userView: "Governed view",
@@ -87,6 +90,7 @@ async function seedGovernedObjects(context: ReturnType<typeof createAppContext>)
   await context.db.insert(passportSnapshots).values({
     id: passportId,
     title: "Governed Passport",
+    workspaceId: "ws_personal",
     humanMarkdown: "# Governed Passport",
     machineManifestJson: JSON.stringify({ title: "Governed Passport" }),
     includeNodeIdsJson: JSON.stringify([nodeId]),
@@ -185,6 +189,7 @@ describe("object policies", () => {
       id: nodeId,
       nodeType: "summary",
       title: "Visa Policy Node",
+      workspaceId: "ws_personal",
       summary: "Node summary",
       bodyMd: "Node body",
       status: "accepted",
@@ -200,6 +205,7 @@ describe("object policies", () => {
       id: cardId,
       cardType: "knowledge",
       title: "Visa Policy Card",
+      workspaceId: "ws_personal",
       claim: "Claim",
       evidenceSummary: "Evidence",
       userView: "View",
@@ -213,6 +219,7 @@ describe("object policies", () => {
     await context.db.insert(passportSnapshots).values({
       id: passportId,
       title: "Passport",
+      workspaceId: "ws_personal",
       humanMarkdown: "# Passport",
       machineManifestJson: JSON.stringify({ title: "Passport" }),
       includeNodeIdsJson: JSON.stringify([nodeId]),

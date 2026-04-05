@@ -22,10 +22,12 @@ export async function createPostcard(context: AppContext, input: PostcardCreateI
   }
 
   const postcardId = createId("card");
+  const workspaceId = input.workspaceId ?? nodes[0]?.workspaceId ?? "ws_personal";
   await context.db.insert(postcards).values({
     id: postcardId,
     cardType: input.cardType,
     title: input.title,
+    workspaceId,
     claim: input.claim,
     evidenceSummary: input.evidenceSummary,
     userView: input.userView,
