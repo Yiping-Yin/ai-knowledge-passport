@@ -7,6 +7,7 @@ import { agentPackSnapshots, passportSnapshots, postcards, visaBundles, wikiNode
 
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray } from "./common";
+import { assertPolicyAllows } from "./policies";
 import { canIncludeInPassport } from "./privacy";
 
 type PackNode = {
@@ -171,6 +172,16 @@ function parsePackSnapshot(row: typeof agentPackSnapshots.$inferSelect): AgentPa
 }
 
 export async function createAgentPackSnapshot(context: AppContext, input: AgentPackCreateInput) {
+  let effectivePrivacyFloor = input.privacyFloor;
+  if (input.passportId) {
+    const sourcePolicy = await assertPolicyAllows(context, "passport_snapshot", input.passportId, "avatar_binding");
+    effectivePrivacyFloor = sourcePolicy.privacyFloor ?? input.privacyFloor;
+  }
+  if (input.visaId) {
+    const sourcePolicy = await assertPolicyAllows(context, "visa_bundle", input.visaId, "avatar_binding");
+    effectivePrivacyFloor = sourcePolicy.privacyFloor ?? input.privacyFloor;
+  }
+
   const resolved = await resolveSourceSelections(context, input);
   if (!resolved.includeNodeIds.length && !resolved.includePostcardIds.length) {
     throw new Error("Agent packs must include at least one node or postcard, or inherit them from a source passport/visa.");
@@ -198,7 +209,7 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
   }
 
   const nodes: PackNode[] = nodeRows
-    .filter((node) => canIncludeInPassport(node.privacyLevel as PrivacyLevel, input.privacyFloor))
+    .filter((node) => canIncludeInPassport(node.privacyLevel as PrivacyLevel, effectivePrivacyFloor))
     .map((node) => ({
       id: node.id,
       title: node.title,
@@ -208,7 +219,7 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
     }));
 
   const cards: PackPostcard[] = postcardRows
-    .filter((card) => canIncludeInPassport(card.privacyLevel as PrivacyLevel, input.privacyFloor))
+    .filter((card) => canIncludeInPassport(card.privacyLevel as PrivacyLevel, effectivePrivacyFloor))
     .map((card) => ({
       id: card.id,
       title: card.title,
@@ -234,7 +245,7 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
     title: input.title,
     sourcePassportId: resolved.sourcePassportId,
     sourceVisaId: resolved.sourceVisaId,
-    privacyFloor: input.privacyFloor,
+    privacyFloor: effectivePrivacyFloor,
     nodes,
     postcards: cards
   });
@@ -248,7 +259,7 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
     machineManifestJson: JSON.stringify(machineManifest),
     includeNodeIdsJson: JSON.stringify(nodes.map((node) => node.id)),
     includePostcardIdsJson: JSON.stringify(cards.map((card) => card.id)),
-    privacyFloor: input.privacyFloor,
+    privacyFloor: effectivePrivacyFloor,
     createdAt: nowIso()
   });
 

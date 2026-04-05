@@ -23,6 +23,7 @@ import { writeAuditLog } from "./audit";
 import { getAgentPackSnapshot } from "./agent-packs";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { getAvatarProfile } from "./avatars";
+import { assertPolicyAllows } from "./policies";
 
 const FORMAT_VERSION = "agent-pack-export/v1";
 
@@ -181,6 +182,10 @@ function buildBundleReadme(input: {
 
 export async function createAgentPackExportPackage(context: AppContext, input: AgentPackExportCreateInput) {
   const resolved = await resolveExportData(context, input);
+  await assertPolicyAllows(context, "agent_pack_snapshot", resolved.pack.id, "exports");
+  if (resolved.avatar) {
+    await assertPolicyAllows(context, "avatar_profile", resolved.avatar.id, "exports");
+  }
   const exportId = createId("export");
   const fileName = `${slugify(resolved.pack.title)}-${exportId}.zip`;
   const filePath = path.join(context.paths.exportsDir, fileName);

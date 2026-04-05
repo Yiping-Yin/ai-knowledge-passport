@@ -251,6 +251,21 @@ export const exportPackages = sqliteTable("export_packages", {
   updatedAt: text("updated_at").notNull()
 });
 
+export const objectPolicies = sqliteTable("object_policies", {
+  id: text("id").primaryKey(),
+  objectType: text("object_type").notNull(),
+  objectId: text("object_id").notNull(),
+  privacyFloorOverride: text("privacy_floor_override"),
+  allowSecretLinks: integer("allow_secret_links"),
+  allowMachineAccess: integer("allow_machine_access"),
+  allowExports: integer("allow_exports"),
+  allowAvatarBinding: integer("allow_avatar_binding"),
+  allowAvatarSimulation: integer("allow_avatar_simulation"),
+  notes: text("notes").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const researchSessions = sqliteTable("research_sessions", {
   id: text("id").primaryKey(),
   question: text("question").notNull(),

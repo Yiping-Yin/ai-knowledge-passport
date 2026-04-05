@@ -24,6 +24,7 @@ import {
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray, parseJsonObject } from "./common";
 import { getAgentPackSnapshot } from "./agent-packs";
+import { assertPolicyAllows, resolveObjectPolicy } from "./policies";
 
 type AvatarProfileRow = typeof avatarProfiles.$inferSelect;
 type AvatarSimulationSessionRow = typeof avatarSimulationSessions.$inferSelect;
@@ -252,6 +253,7 @@ async function createSimulationSession(
 
 export async function createAvatarProfile(context: AppContext, input: AvatarProfileCreateInput) {
   await ensureAgentPackExists(context, input.activePackId);
+  await assertPolicyAllows(context, "agent_pack_snapshot", input.activePackId, "avatar_binding");
 
   const avatarId = createId("avatar");
   const timestamp = nowIso();
@@ -308,6 +310,7 @@ export async function updateAvatarProfile(context: AppContext, avatarId: string,
 
   if (input.activePackId) {
     await ensureAgentPackExists(context, input.activePackId);
+    await assertPolicyAllows(context, "agent_pack_snapshot", input.activePackId, "avatar_binding");
   }
 
   await context.db
@@ -378,6 +381,26 @@ export async function simulateAvatar(context: AppContext, avatarId: string, inpu
   const profile = await getAvatarProfile(context, avatarId);
   if (!profile) {
     throw new Error("Avatar profile not found.");
+  }
+
+  const profilePolicy = await resolveObjectPolicy(context, "avatar_profile", avatarId);
+  if (!profilePolicy.allowAvatarSimulation) {
+    const answerMd = "This avatar is not permitted to simulate replies under the current object policy.";
+    const sessionId = await createSimulationSession(context, {
+      avatarProfileId: profile.id,
+      question: input.question,
+      resultStatus: "refused",
+      answerMd,
+      citations: [],
+      reason: "policy_avatar_simulation_disabled"
+    });
+    return {
+      sessionId,
+      resultStatus: "refused" as const,
+      answerMd,
+      citations: [],
+      reason: "policy_avatar_simulation_disabled"
+    };
   }
 
   if (profile.status === "paused") {

@@ -273,6 +273,21 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       updated_at text not null
     );
 
+    create table if not exists object_policies (
+      id text primary key,
+      object_type text not null,
+      object_id text not null,
+      privacy_floor_override text,
+      allow_secret_links integer,
+      allow_machine_access integer,
+      allow_exports integer,
+      allow_avatar_binding integer,
+      allow_avatar_simulation integer,
+      notes text not null default '',
+      created_at text not null,
+      updated_at text not null
+    );
+
     create table if not exists research_sessions (
       id text primary key,
       question text not null,
