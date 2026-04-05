@@ -207,6 +207,11 @@ function renderVisaHumanMarkdown(input: {
   description: string;
   purpose: string;
   expiresAt?: string | null;
+  passportContext?: {
+    focusCard?: { title?: string; goal?: string } | null;
+    capabilitySignals?: Array<{ topic?: string; observedPractice?: string; currentGaps?: string }>;
+    mistakePatterns?: Array<{ topic?: string; description?: string }>;
+  } | null;
   nodes: VisaNode[];
   cards: VisaPostcard[];
   sourceMap: Map<string, typeof sources.$inferSelect>;
@@ -226,6 +231,33 @@ function renderVisaHumanMarkdown(input: {
 
   if (input.purpose.trim()) {
     lines.push("", `Purpose: ${input.purpose.trim()}`);
+  }
+
+  if (input.passportContext) {
+    const focusTitle = input.passportContext.focusCard?.title;
+    const focusGoal = input.passportContext.focusCard?.goal;
+    const signals = input.passportContext.capabilitySignals ?? [];
+    const mistakes = input.passportContext.mistakePatterns ?? [];
+
+    lines.push("", "## Passport Context");
+    lines.push("", `Active focus: ${focusTitle ?? "none"}`);
+    if (focusGoal) {
+      lines.push("", `Goal: ${focusGoal}`);
+    }
+
+    if (signals.length) {
+      lines.push("", "### Capability Signals");
+      for (const signal of signals.slice(0, 5)) {
+        lines.push("", `- ${signal.topic ?? "Untitled"}: ${signal.observedPractice ?? ""}${signal.currentGaps ? ` | Gaps: ${signal.currentGaps}` : ""}`);
+      }
+    }
+
+    if (mistakes.length) {
+      lines.push("", "### Blind Spots");
+      for (const mistake of mistakes.slice(0, 5)) {
+        lines.push("", `- ${mistake.topic ?? "Untitled"}: ${mistake.description ?? ""}`);
+      }
+    }
   }
 
   if (input.cards.length) {
@@ -273,6 +305,7 @@ function buildVisaMachineManifest(input: {
   title: string;
   audienceLabel: string;
   passportId: string | null;
+  passportContext: Record<string, unknown> | null;
   description: string;
   purpose: string;
   privacyFloor: PrivacyLevel;
@@ -291,6 +324,7 @@ function buildVisaMachineManifest(input: {
     title: input.title,
     audienceLabel: input.audienceLabel,
     sourcePassportId: input.passportId,
+    passportContext: input.passportContext,
     description: input.description,
     purpose: input.purpose,
     generatedAt: nowIso(),
@@ -333,6 +367,7 @@ async function loadPassportFallback(
   if (!passportId) {
     return {
       passportTitle: null,
+      passportContext: null,
       resolvedNodeIds: includeNodeIds,
       resolvedPostcardIds: includePostcardIds
     };
@@ -350,6 +385,7 @@ async function loadPassportFallback(
 
   return {
     passportTitle: passport.title,
+    passportContext: JSON.parse(passport.machineManifestJson) as Record<string, unknown>,
     resolvedNodeIds: usePassportSnapshot ? parseJsonArray<string>(passport.includeNodeIdsJson) : includeNodeIds,
     resolvedPostcardIds: usePassportSnapshot ? parseJsonArray<string>(passport.includePostcardIdsJson) : includePostcardIds
   };
@@ -412,6 +448,7 @@ async function loadVisaContent(context: AppContext, input: VisaBundleCreateInput
 
   return {
     passportTitle: fallback.passportTitle,
+    passportContext: fallback.passportContext,
     nodes,
     cards
   };
@@ -674,6 +711,11 @@ export async function createVisaBundle(context: AppContext, input: VisaBundleCre
     title: input.title,
     audienceLabel: input.audienceLabel,
     passportTitle: content.passportTitle,
+    passportContext: content.passportContext as {
+      focusCard?: { title?: string; goal?: string } | null;
+      capabilitySignals?: Array<{ topic?: string; observedPractice?: string; currentGaps?: string }>;
+      mistakePatterns?: Array<{ topic?: string; description?: string }>;
+    } | null,
     description: input.description,
     purpose: input.purpose,
     expiresAt: input.expiresAt ?? null,
@@ -687,6 +729,7 @@ export async function createVisaBundle(context: AppContext, input: VisaBundleCre
     title: input.title,
     audienceLabel: input.audienceLabel,
     passportId: input.passportId ?? null,
+    passportContext: content.passportContext ?? null,
     description: input.description,
     purpose: input.purpose,
     privacyFloor: effectivePrivacyFloor,

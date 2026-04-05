@@ -37,6 +37,16 @@ export default async function VisaDetailPage(props: { params: Promise<{ id: stri
     );
   }
 
+  const passportContext = visa.machineManifest && typeof visa.machineManifest === "object"
+    ? (visa.machineManifest as {
+        passportContext?: {
+          focusCard?: { title?: string } | null;
+          capabilitySignals?: unknown[];
+          mistakePatterns?: unknown[];
+        };
+      }).passportContext ?? null
+    : null;
+
   return (
     <PageShell currentPath="/visas" title="Visa Detail" subtitle="Inspect policy, access state, and external flowback for a single scenario bundle">
       <section className="grid gap-4 md:grid-cols-4">
@@ -129,6 +139,13 @@ export default async function VisaDetailPage(props: { params: Promise<{ id: stri
             <div className="rounded-2xl border border-[var(--line)] bg-white/80 p-4">
               <p className="font-medium">Postcards</p>
               <p className="mt-2 text-[var(--muted)]">{visa.includePostcardIds.length}</p>
+            </div>
+            <div className="rounded-2xl border border-[var(--line)] bg-white/80 p-4">
+              <p className="font-medium">Inherited Passport Context</p>
+              <p className="mt-2 text-[var(--muted)]">
+                Focus {passportContext?.focusCard?.title ?? "none"} · Signals {Array.isArray(passportContext?.capabilitySignals) ? passportContext.capabilitySignals.length : 0} · Blind spots{" "}
+                {Array.isArray(passportContext?.mistakePatterns) ? passportContext.mistakePatterns.length : 0}
+              </p>
             </div>
           </div>
         </SectionCard>

@@ -133,6 +133,36 @@ npm run dev:all
 
 - [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 
+## Demo Seed
+
+To create a deterministic demo dataset without calling a live model:
+
+```bash
+npm run demo:seed
+```
+
+This seeds:
+
+- demo sources
+- accepted knowledge nodes
+- capability signals
+- mistake patterns
+- one active focus card
+- one postcard
+- one passport
+- one visa
+- one agent pack
+- one avatar
+- one export package
+
+Recommended walkthrough after seeding:
+
+1. open `/signals`
+2. open `/passport`
+3. open `/visas`
+4. open `/avatars`
+5. open `/exports`
+
 ## Environment
 
 Current variables in `apps/web/.env.example`:

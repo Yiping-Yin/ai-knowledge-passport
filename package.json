@@ -12,6 +12,7 @@
     "dev": "npm run dev -w @ai-knowledge-passport/web",
     "worker": "npm run worker -w @ai-knowledge-passport/web",
     "dev:all": "concurrently \"npm run dev -w @ai-knowledge-passport/web\" \"npm run worker -w @ai-knowledge-passport/web\"",
+    "demo:seed": "npm run demo:seed -w @ai-knowledge-passport/web",
     "build": "npm run build -w @ai-knowledge-passport/web",
     "typecheck": "npm run typecheck -w @ai-knowledge-passport/shared && npm run typecheck -w @ai-knowledge-passport/web",
     "test": "npm run test -w @ai-knowledge-passport/web",
