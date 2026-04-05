@@ -19,6 +19,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
@@ -40,6 +41,7 @@ describe("health report", () => {
       id: "src_failed",
       type: "markdown",
       title: "Broken Source",
+      workspaceId: "ws_personal",
       importedAt: new Date().toISOString(),
       filePath: null,
       privacyLevel: "L1_LOCAL_AI",
@@ -57,6 +59,7 @@ describe("health report", () => {
         id: "node_a",
         nodeType: "summary",
         title: "Duplicate Topic",
+        workspaceId: "ws_personal",
         summary: "A",
         bodyMd: "A",
         status: "accepted",
@@ -72,6 +75,7 @@ describe("health report", () => {
         id: "node_b",
         nodeType: "summary",
         title: "Duplicate Topic",
+        workspaceId: "ws_personal",
         summary: "B",
         bodyMd: "B",
         status: "pending_review",

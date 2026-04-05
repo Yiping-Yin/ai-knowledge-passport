@@ -31,7 +31,7 @@ export default async function AvatarsPage() {
   const activeLiveSessions = liveSessions.filter((session) => session.status === "active").length;
 
   return (
-    <PageShell currentPath="/avatars" title="Avatars" subtitle="Configure governed agent packs, bind them to avatar profiles, and simulate refusal and escalation behavior safely">
+    <PageShell currentPath="/avatars" title="Avatars" subtitle="Bind governed agent packs to avatars so an AI can speak from passport-derived context inside explicit boundaries">
       <section className="grid gap-4 md:grid-cols-6">
         <StatTile label="Agent Packs" value={packs.length} />
         <StatTile label="Avatar Profiles" value={avatars.length} />
@@ -42,7 +42,7 @@ export default async function AvatarsPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <SectionCard title="Create Agent Pack" description="Snapshot a governed subset of passports, visas, nodes, and postcards as the knowledge boundary for a future avatar.">
+        <SectionCard title="Create Agent Pack" description="Snapshot a governed subset of passports, visas, nodes, and postcards as the knowledge boundary for a future avatar. Start from a passport or visa when possible.">
           <AgentPackForm
             passports={passports.map((passport) => ({ id: passport.id, title: passport.title }))}
             visas={visas.map((visa) => ({ id: visa.id, title: visa.title }))}
@@ -77,7 +77,7 @@ export default async function AvatarsPage() {
                 </div>
                 <div className="mt-4">
                   <Link href={`/exports?agentPackId=${pack.id}`} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
-                    Export Pack
+                    Export Agent Pack
                   </Link>
                 </div>
               </article>

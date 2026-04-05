@@ -116,6 +116,7 @@ function buildManifest(input: {
   objectId: string;
   title: string;
   privacyFloor: string;
+  passportContext: Record<string, unknown> | null;
   includeAvatarProfile: boolean;
   avatarProfileId: string | null;
   nodeCount: number;
@@ -131,6 +132,7 @@ function buildManifest(input: {
     title: input.title,
     createdAt: nowIso(),
     privacyFloor: input.privacyFloor,
+    passportContext: input.passportContext,
     boundaries: {
       internalOnly: true,
       liveAgentCapable: false,
@@ -221,6 +223,10 @@ export async function createAgentPackExportPackage(context: AppContext, input: A
     objectId: resolved.pack.id,
     title: resolved.pack.title,
     privacyFloor: resolved.pack.privacyFloor,
+    passportContext:
+      resolved.pack.machineManifest && typeof resolved.pack.machineManifest === "object"
+        ? ((resolved.pack.machineManifest as { passportContext?: Record<string, unknown> }).passportContext ?? null)
+        : null,
     includeAvatarProfile: Boolean(resolved.avatar),
     avatarProfileId: resolved.avatar?.id ?? null,
     nodeCount: resolved.nodes.length,

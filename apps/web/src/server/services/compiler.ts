@@ -9,6 +9,7 @@ import { createClaim } from "./claims";
 import { completeCompilationRun, createCompilationRun } from "./compilation-runs";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { deleteWikiNodeFts, syncWikiNodeFts } from "./fts";
+import { generateLearnerStateForWorkspace } from "./signals";
 
 type ExistingNodeRecord = {
   id: string;
@@ -185,6 +186,7 @@ export async function compileSource(context: AppContext, sourceId: string) {
         title: node.title,
         summary: node.summary,
         bodyMd: node.bodyMd,
+        workspaceId: source.workspaceId,
         status: "pending_review",
         sourceIdsJson: JSON.stringify([sourceId]),
         tagsJson: JSON.stringify(node.tags),
@@ -329,6 +331,7 @@ export async function compileSource(context: AppContext, sourceId: string) {
         claimType: "summary_claim",
         title: dbNode.title,
         statement: dbNode.summary,
+        workspaceId: dbNode.workspaceId,
         confidence: strongest[0]?.score ?? 0,
         sourceFragmentIds: strongest.map((entry) => entry.fragmentId),
         sourceIds: parseJsonArray<string>(dbNode.sourceIdsJson),
@@ -550,6 +553,10 @@ export async function applyReviewAction(
     result: "succeeded",
     notes: input.note ?? ""
   });
+
+  if (input.action === "accept" || input.action === "merge") {
+    await generateLearnerStateForWorkspace(context, node.workspaceId);
+  }
 
   return auditId;
 }

@@ -18,6 +18,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
@@ -39,6 +40,7 @@ describe("fragment service", () => {
       id: "src_1",
       type: "markdown",
       title: "Fragment Source",
+      workspaceId: "ws_personal",
       importedAt: new Date().toISOString(),
       filePath: null,
       privacyLevel: "L1_LOCAL_AI",

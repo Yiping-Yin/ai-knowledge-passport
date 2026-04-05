@@ -28,6 +28,7 @@ export type PackEvidenceItem = {
   id: string;
   title: string;
   text: string;
+  workspaceId?: string;
 };
 
 export type AvatarQuestionClassification = {
@@ -78,7 +79,8 @@ export async function resolvePackEvidence(context: AppContext, pack: AgentPackSn
     .map((node) => ({
       id: node.id,
       title: node.title,
-      text: `${node.title}\n${node.summary}\n${node.bodyMd}`
+      text: `${node.title}\n${node.summary}\n${node.bodyMd}`,
+      workspaceId: node.workspaceId
     }));
 }
 

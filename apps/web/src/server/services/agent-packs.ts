@@ -9,6 +9,7 @@ import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { assertPolicyAllows } from "./policies";
 import { canIncludeInPassport } from "./privacy";
+import { getPassportSnapshot } from "./passports";
 
 type PackNode = {
   id: string;
@@ -30,6 +31,7 @@ function buildAgentPackHumanMarkdown(input: {
   title: string;
   sourcePassportId: string | null;
   sourceVisaId: string | null;
+  passportContext: { focusCard?: { title?: string } | null; capabilitySignals?: unknown[]; mistakePatterns?: unknown[] } | null;
   nodes: PackNode[];
   postcards: PackPostcard[];
 }) {
@@ -39,6 +41,15 @@ function buildAgentPackHumanMarkdown(input: {
     `Source passport: ${input.sourcePassportId ?? "none"}`,
     `Source visa: ${input.sourceVisaId ?? "none"}`
   ];
+
+  if (input.passportContext) {
+    lines.push(
+      "",
+      `Inherited focus: ${input.passportContext.focusCard?.title ?? "none"}`,
+      `Inherited capability signals: ${Array.isArray(input.passportContext.capabilitySignals) ? input.passportContext.capabilitySignals.length : 0}`,
+      `Inherited mistake patterns: ${Array.isArray(input.passportContext.mistakePatterns) ? input.passportContext.mistakePatterns.length : 0}`
+    );
+  }
 
   if (input.postcards.length) {
     lines.push("", "## Postcards");
@@ -71,6 +82,7 @@ function buildAgentPackMachineManifest(input: {
   sourcePassportId: string | null;
   sourceVisaId: string | null;
   privacyFloor: PrivacyLevel;
+  passportContext: Record<string, unknown> | null;
   nodes: PackNode[];
   postcards: PackPostcard[];
 }) {
@@ -81,6 +93,7 @@ function buildAgentPackMachineManifest(input: {
     sourcePassportId: input.sourcePassportId,
     sourceVisaId: input.sourceVisaId,
     privacyFloor: input.privacyFloor,
+    passportContext: input.passportContext,
     stats: {
       nodeCount: input.nodes.length,
       postcardCount: input.postcards.length
@@ -233,10 +246,19 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
   }
 
   const packId = createId("pack");
+  const sourcePassport = resolved.sourcePassportId ? await getPassportSnapshot(context, resolved.sourcePassportId) : null;
+  const passportContext = sourcePassport?.machineManifest && typeof sourcePassport.machineManifest === "object"
+    ? {
+        focusCard: (sourcePassport.machineManifest as { focusCard?: unknown }).focusCard ?? null,
+        capabilitySignals: (sourcePassport.machineManifest as { capabilitySignals?: unknown[] }).capabilitySignals ?? [],
+        mistakePatterns: (sourcePassport.machineManifest as { mistakePatterns?: unknown[] }).mistakePatterns ?? []
+      }
+    : null;
   const humanMarkdown = buildAgentPackHumanMarkdown({
     title: input.title,
     sourcePassportId: resolved.sourcePassportId,
     sourceVisaId: resolved.sourceVisaId,
+    passportContext,
     nodes,
     postcards: cards
   });
@@ -246,6 +268,7 @@ export async function createAgentPackSnapshot(context: AppContext, input: AgentP
     sourcePassportId: resolved.sourcePassportId,
     sourceVisaId: resolved.sourceVisaId,
     privacyFloor: effectivePrivacyFloor,
+    passportContext,
     nodes,
     postcards: cards
   });

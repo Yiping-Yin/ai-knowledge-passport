@@ -6,11 +6,20 @@ import {
   text
 } from "drizzle-orm/sqlite-core";
 
+export const workspaces = sqliteTable("workspaces", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  workspaceType: text("workspace_type").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
 export const sources = sqliteTable("sources", {
   id: text("id").primaryKey(),
   type: text("type").notNull(),
   title: text("title").notNull(),
   originUrl: text("origin_url"),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
   createdAt: text("created_at"),
   importedAt: text("imported_at").notNull(),
   filePath: text("file_path"),
@@ -51,6 +60,7 @@ export const claims = sqliteTable("claims", {
   claimType: text("claim_type").notNull(),
   title: text("title").notNull(),
   statement: text("statement").notNull(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
   status: text("status").notNull(),
   confidence: real("confidence").notNull().default(0),
   sourceFragmentIdsJson: text("source_fragment_ids_json").notNull().default("[]"),
@@ -95,6 +105,7 @@ export const wikiNodes = sqliteTable("wiki_nodes", {
   title: text("title").notNull(),
   summary: text("summary").notNull(),
   bodyMd: text("body_md").notNull(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
   status: text("status").notNull(),
   sourceIdsJson: text("source_ids_json").notNull().default("[]"),
   tagsJson: text("tags_json").notNull().default("[]"),
@@ -128,6 +139,7 @@ export const postcards = sqliteTable("postcards", {
   id: text("id").primaryKey(),
   cardType: text("card_type").notNull(),
   title: text("title").notNull(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
   claim: text("claim").notNull(),
   evidenceSummary: text("evidence_summary").notNull(),
   userView: text("user_view").notNull(),
@@ -142,12 +154,56 @@ export const postcards = sqliteTable("postcards", {
 export const passportSnapshots = sqliteTable("passport_snapshots", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
   humanMarkdown: text("human_markdown").notNull(),
   machineManifestJson: text("machine_manifest_json").notNull(),
   includeNodeIdsJson: text("include_node_ids_json").notNull().default("[]"),
   includePostcardIdsJson: text("include_postcard_ids_json").notNull().default("[]"),
   privacyFloor: text("privacy_floor").notNull(),
   createdAt: text("created_at").notNull()
+});
+
+export const capabilitySignals = sqliteTable("capability_signals", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  topic: text("topic").notNull(),
+  observedPractice: text("observed_practice").notNull(),
+  currentGaps: text("current_gaps").notNull(),
+  confidence: real("confidence").notNull().default(0),
+  evidenceNodeIdsJson: text("evidence_node_ids_json").notNull().default("[]"),
+  evidenceFragmentIdsJson: text("evidence_fragment_ids_json").notNull().default("[]"),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const mistakePatterns = sqliteTable("mistake_patterns", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  topic: text("topic").notNull(),
+  description: text("description").notNull(),
+  fixSuggestions: text("fix_suggestions").notNull(),
+  recurrenceCount: integer("recurrence_count").notNull().default(1),
+  exampleNodeIdsJson: text("example_node_ids_json").notNull().default("[]"),
+  exampleFragmentIdsJson: text("example_fragment_ids_json").notNull().default("[]"),
+  privacyLevel: text("privacy_level").notNull(),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const focusCards = sqliteTable("focus_cards", {
+  id: text("id").primaryKey(),
+  workspaceId: text("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  goal: text("goal").notNull(),
+  timeframe: text("timeframe").notNull().default(""),
+  priority: text("priority").notNull().default("medium"),
+  successCriteria: text("success_criteria").notNull().default(""),
+  relatedTopicsJson: text("related_topics_json").notNull().default("[]"),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
 });
 
 export const visaBundles = sqliteTable("visa_bundles", {

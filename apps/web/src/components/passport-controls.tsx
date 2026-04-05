@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 
-export function PassportControls() {
+export function PassportControls(props: {
+  workspaces: Array<{ id: string; title: string; workspaceType: string }>;
+}) {
   const [passportMessage, setPassportMessage] = useState("");
   const [backupMessage, setBackupMessage] = useState("");
   const [isPassportPending, startPassportTransition] = useTransition();
@@ -23,6 +25,7 @@ export function PassportControls() {
               },
               body: JSON.stringify({
                 title: formData.get("title"),
+                workspaceId: formData.get("workspaceId"),
                 includeNodeIds: String(formData.get("includeNodeIds") ?? "")
                   .split(",")
                   .map((entry) => entry.trim())
@@ -43,6 +46,16 @@ export function PassportControls() {
           <label className="space-y-2 text-sm">
             <span>Passport Title</span>
             <input name="title" defaultValue="Knowledge Passport" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
+          </label>
+          <label className="space-y-2 text-sm">
+            <span>Workspace</span>
+            <select name="workspaceId" defaultValue={props.workspaces[0]?.id ?? "ws_personal"} className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+              {props.workspaces.map((workspace) => (
+                <option key={workspace.id} value={workspace.id}>
+                  {workspace.title} · {workspace.workspaceType}
+                </option>
+              ))}
+            </select>
           </label>
           <label className="space-y-2 text-sm">
             <span>Minimum Privacy Floor</span>

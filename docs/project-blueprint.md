@@ -2,7 +2,7 @@
 
 ## One-line Definition
 
-AI Personal Knowledge Passport System is a local-first system for personal knowledge compilation, authorized projection, and agent governance.
+AI Personal Knowledge Passport System is an AI-mountable personal knowledge base: a local-first system for knowledge compilation, authorized projection, and governed AI use.
 
 ## Why This Exists
 
@@ -15,19 +15,19 @@ Most current knowledge workflows still break in four places:
 - private knowledge and outward expression are disconnected
 - personal expression and future digital agents are disconnected
 
-This system exists to repair those four breaks by treating personal knowledge as governed digital infrastructure instead of passive notes.
+This system exists to repair those four breaks by turning personal knowledge into a governed AI-readable context layer instead of passive notes.
 
 ## Core Product Nature
 
 This is not primarily a note-taking app and not primarily a chat UI.
 
-It is a three-part system:
+It is a layered product:
 
-1. A knowledge compiler
-2. A capability projection layer
-3. An agent governance layer
+1. A core context compiler
+2. A passport and mount layer
+3. A governed agent layer
 
-The goal is to turn private materials into traceable, reusable, authorized knowledge assets.
+The goal is to help any AI understand the user’s foundation, current goal, and blind spots quickly under authorization.
 
 ## Double-loop Model
 
@@ -35,13 +35,13 @@ The goal is to turn private materials into traceable, reusable, authorized knowl
 
 Raw material enters the system, is incrementally compiled into local knowledge structures, becomes queryable for research and outputs, then flows back into the knowledge base as new structured artifacts.
 
-`source -> compile -> wiki/claims -> research -> output -> flowback -> recompile`
+`source -> compile -> signals -> postcards -> passport -> research/output -> flowback`
 
-### Outer Loop: Social Circulation
+### Outer Loop: Mount and Governance
 
-Internal knowledge artifacts are compressed into postcards, organized into passports, cut into scenario bundles, used in collaboration or AI transfer, and then logged and reviewed for controlled re-entry.
+Internal knowledge artifacts are compressed into postcards, organized into passports, narrowed into visas, used in governed AI sessions or export bundles, and then logged and reviewed for controlled re-entry.
 
-`knowledge -> postcard/passport -> scenario bundle -> external use -> audit -> review -> update`
+`knowledge -> postcard/passport -> visa/agent pack -> governed use -> audit -> review -> update`
 
 ## System Layers
 
@@ -75,23 +75,23 @@ Controls future digital-agent access through explicit knowledge packs, boundarie
 
 ## Core Object Chain
 
-The internal object chain should continue to evolve around:
+The current object chain is best understood as:
 
-`Source -> Fragment -> Claim -> Wiki Node -> Postcard -> Passport / Visa -> Avatar Pack`
+`Source -> Fragment -> Claim -> Wiki Node -> Capability Signal / Mistake Pattern / Focus Card -> Postcard -> Passport -> Visa -> Agent Pack -> Avatar`
 
-Governance objects around that chain should include:
+Governance objects around that chain include:
 
 - Grant / Policy
 - Compilation Run
 - Audit Log
 - Output
 
-The biggest architectural upgrades still missing or partial today are:
+The current strategic reset is not about adding more layers. It is about making the first AI-readable layer sharper:
 
-- explicit Fragment-centric evidence modeling
-- explicit Claim modeling
-- explicit Grant / authorization records
-- explicit Compilation Run history
+- workspace-scoped context
+- capability signals instead of hard ability claims
+- mistake patterns instead of vague “AI memory”
+- active focus cards so AI understands the user’s present, not only their past
 
 ## Front-stage Expression Model
 
@@ -103,11 +103,11 @@ The smallest expressive unit for a theme, claim, method, or project.
 
 ### Passport
 
-A structured capability interface for people and AI systems to quickly understand a person’s themes, evidence, methods, and boundaries.
+The canonical AI entry object for quickly understanding the user’s themes, active goal, signals, blind spots, and boundaries.
 
 ### Visa / Scenario Bundle
 
-A constrained context package for a specific audience, task, and time window.
+A constrained mount-time context package for a specific audience, task, and time window.
 
 ## Core Principles
 
@@ -128,43 +128,37 @@ The first strong-fit user is not “everyone who takes notes.” It is the long-
 - uses multiple AI systems but wants one persistent private context base
 - expects future AI delegation to require clear boundaries
 
-## MVP Definition
+## Current Product Reset
 
-The MVP should prove one loop end-to-end:
+The product now treats this as the primary loop:
 
-`import -> compile -> local research -> cited output -> flowback -> postcard -> lightweight passport -> local backup`
+`import -> compile -> signals -> postcard -> passport -> mount`
 
-The MVP is successful when a user’s private materials can be transformed into reusable, cited, exportable, and authorization-aware knowledge assets.
+The product is successful when an AI can read the passport layer and give more relevant help with less repeated explanation.
 
 ## Suggested Delivery Phases
 
-### MVP
+### Foundation
 
 - multi-source import
-- incremental local wiki compilation
-- local-first Q&A with citations
-- markdown / brief outputs with flowback
-- postcards
-- lightweight passports
-- local backup
+- incremental local compilation
+- accepted nodes and claims
+- citations and flowback
+- postcards and passports
 
-### V1
+### Mount Layer
 
-- scenario bundles / visas
-- sharing controls and access logs
-- health center
-- evidence-chain views
-- machine-readable passports
-- project migration views
+- visas
+- access analytics
+- controlled feedback flowback
 
-### V2
+### Governed AI Layer
 
-- avatar console
-- agent knowledge packs
-- escalation and audit rules for agents
-- finer-grained permission engine
-- cross-AI standard knowledge package export
-- multi-device sync and collaboration governance
+- agent packs
+- avatars
+- internal live governed sessions
+- cross-AI exports
+- policy engine
 
 ## Success Metrics
 
@@ -172,12 +166,12 @@ The best north-star metric is not raw DAU or import count.
 
 It is:
 
-The number of effective knowledge units that were reused, flowed back, authorized outward, or used by a governed agent in the last 30 days.
+The number of times an AI can successfully help the user after reading passport context, without the user having to re-explain core background.
 
 Supporting metrics:
 
 - source-to-node conversion rate
-- node-to-postcard/passport conversion rate
+- node-to-signal/passport conversion rate
 - citation-backed answer rate
 - output flowback rate
 - scenario bundle usage count
@@ -187,13 +181,11 @@ Supporting metrics:
 
 ## Current Strategic Priority
 
-The repo already contains the early MVP backbone.
+The repo already contains deep advanced layers. The present priority is product sharpness:
 
-The most important next-system upgrades are:
+1. Make workspace-scoped AI context explicit
+2. Make capability signals and mistake patterns first-class
+3. Make focus cards the active-goal layer
+4. Make passport the canonical AI entry surface
 
-1. Make Fragment a first-class evidence model
-2. Make Claim a first-class knowledge object
-3. Make authorization a first-class Grant layer
-4. Make compilation history explicit with Compilation Run records
-
-If those layers mature, the system becomes more than a well-organized PKM app. It becomes a real personal knowledge sovereignty infrastructure.
+If those layers mature, the system stops reading like a broad future-total platform and starts behaving like a concrete AI-readable personal knowledge base.

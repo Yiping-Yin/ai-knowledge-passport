@@ -8,6 +8,7 @@ import { outputs, wikiNodes } from "@/server/db/schema";
 import { writeAuditLog } from "./audit";
 import { createId, nowIso, parseJsonArray } from "./common";
 import { syncWikiNodeFts } from "./fts";
+import { defaultWorkspaceId } from "./workspaces";
 
 export async function createOutput(context: AppContext, input: OutputCreateInput) {
   const outputId = createId("out");
@@ -24,6 +25,13 @@ export async function createOutput(context: AppContext, input: OutputCreateInput
   });
 
   let flowbackNodeId: string | null = null;
+  const relatedWorkspaceId = input.relatedNodeIds.length
+    ? (
+        await context.db.query.wikiNodes.findFirst({
+          where: eq(wikiNodes.id, input.relatedNodeIds[0] ?? "")
+        })
+      )?.workspaceId ?? defaultWorkspaceId
+    : defaultWorkspaceId;
 
   if (input.flowbackMode === "new_node") {
     flowbackNodeId = createId("node");
@@ -33,6 +41,7 @@ export async function createOutput(context: AppContext, input: OutputCreateInput
       title: input.title,
       summary: input.content.split("\n").slice(0, 3).join(" ").slice(0, 280),
       bodyMd: input.content,
+      workspaceId: relatedWorkspaceId,
       status: "accepted",
       sourceIdsJson: JSON.stringify(input.relatedSourceIds),
       tagsJson: JSON.stringify([]),

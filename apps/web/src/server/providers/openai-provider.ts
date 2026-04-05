@@ -246,6 +246,9 @@ export class OpenAIProvider implements ModelProvider {
     title: string;
     nodes: Array<{ title: string; summary: string; bodyMd: string; tags: string[] }>;
     postcards: Array<{ title: string; claim: string; userView: string; cardType: "knowledge" | "project" | "method" | "question" }>;
+    capabilitySignals: Array<{ topic: string; observedPractice: string; currentGaps: string; confidence: number }>;
+    mistakePatterns: Array<{ topic: string; description: string; fixSuggestions: string; recurrenceCount: number }>;
+    focusCard: { title: string; goal: string; timeframe: string; priority: string; successCriteria: string } | null;
     privacyFloor: "L0_SELF" | "L1_LOCAL_AI" | "L2_INVITED" | "L3_PUBLIC" | "L4_AGENT_ONLY";
   }) {
     const response = await this.jsonResponse<{
@@ -261,6 +264,79 @@ export class OpenAIProvider implements ModelProvider {
       machineManifest: response.machineManifest && typeof response.machineManifest === "object"
         ? (response.machineManifest as Record<string, unknown>)
         : {}
+    };
+  }
+
+  async generateLearnerState(input: {
+    workspaceTitle: string;
+    nodes: Array<{ id: string; title: string; summary: string; bodyMd: string; tags: string[]; projectKey?: string | null }>;
+    claims: Array<{ id: string; title: string; statement: string; confidence: number; tags: string[]; sourceFragmentIds: string[]; nodeId?: string | null }>;
+  }) {
+    const response = await this.jsonResponse<{
+      capabilitySignals?: unknown;
+      mistakePatterns?: unknown;
+    }>(
+      "You are synthesizing a user's current learning state. Extract conservative, evidence-backed capability signals and recurring mistake patterns. Never claim certainty or assign ability scores. Use only node ids and source fragment ids that appear in the provided payload.",
+      input
+    );
+
+    const capabilitySignals = Array.isArray(response.capabilitySignals)
+      ? response.capabilitySignals.flatMap((entry) => {
+          if (!entry || typeof entry !== "object") {
+            return [];
+          }
+          const candidate = entry as Record<string, unknown>;
+          const topic = typeof candidate.topic === "string" ? candidate.topic.trim() : "";
+          const observedPractice = typeof candidate.observedPractice === "string" ? candidate.observedPractice.trim() : "";
+          const currentGaps = typeof candidate.currentGaps === "string" ? candidate.currentGaps.trim() : "";
+          const confidence = typeof candidate.confidence === "number" ? candidate.confidence : 0.5;
+
+          if (!topic || !observedPractice || !currentGaps) {
+            return [];
+          }
+
+          return [{
+            topic,
+            observedPractice,
+            currentGaps,
+            confidence: Math.max(0, Math.min(1, confidence)),
+            evidenceNodeIds: toArrayOfStrings(candidate.evidenceNodeIds),
+            evidenceFragmentIds: toArrayOfStrings(candidate.evidenceFragmentIds)
+          }];
+        })
+      : [];
+
+    const mistakePatterns = Array.isArray(response.mistakePatterns)
+      ? response.mistakePatterns.flatMap((entry) => {
+          if (!entry || typeof entry !== "object") {
+            return [];
+          }
+          const candidate = entry as Record<string, unknown>;
+          const topic = typeof candidate.topic === "string" ? candidate.topic.trim() : "";
+          const description = typeof candidate.description === "string" ? candidate.description.trim() : "";
+          const fixSuggestions = typeof candidate.fixSuggestions === "string" ? candidate.fixSuggestions.trim() : "";
+          const recurrenceCount = typeof candidate.recurrenceCount === "number" ? Math.max(1, Math.floor(candidate.recurrenceCount)) : 1;
+          const privacyLevel = typeof candidate.privacyLevel === "string" ? candidate.privacyLevel : "L1_LOCAL_AI";
+
+          if (!topic || !description || !fixSuggestions) {
+            return [];
+          }
+
+          return [{
+            topic,
+            description,
+            fixSuggestions,
+            recurrenceCount,
+            exampleNodeIds: toArrayOfStrings(candidate.exampleNodeIds),
+            exampleFragmentIds: toArrayOfStrings(candidate.exampleFragmentIds),
+            privacyLevel: privacyLevel as "L0_SELF" | "L1_LOCAL_AI" | "L2_INVITED" | "L3_PUBLIC" | "L4_AGENT_ONLY"
+          }];
+        })
+      : [];
+
+    return {
+      capabilitySignals,
+      mistakePatterns
     };
   }
 

@@ -67,6 +67,7 @@ export async function searchKnowledge(
     q: string;
     limit?: number;
     projectKey?: string;
+    workspaceId?: string;
   }
 ): Promise<SearchKnowledgeResult> {
   const limit = query.limit ?? 8;
@@ -146,6 +147,10 @@ export async function searchKnowledge(
         return null;
       }
 
+      if (query.workspaceId && source.workspaceId !== query.workspaceId) {
+        return null;
+      }
+
       const semantic = context.provider.isConfigured
         ? cosineSimilarity(parseJsonArray<number>(fragment.embeddingJson), queryEmbedding)
         : 0;
@@ -169,6 +174,7 @@ export async function searchKnowledge(
   const nodeHits: NodeSearchHit[] = nodeDetails
     .filter((node) => node.status === "accepted")
     .filter((node) => !query.projectKey || node.projectKey === query.projectKey)
+    .filter((node) => !query.workspaceId || node.workspaceId === query.workspaceId)
     .map((node) => {
       const semantic = context.provider.isConfigured
         ? cosineSimilarity(parseJsonArray<number>(node.embeddingJson), queryEmbedding)

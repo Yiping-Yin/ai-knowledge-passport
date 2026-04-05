@@ -1,15 +1,17 @@
 # AI Personal Knowledge Passport System
 
-This project is a local-first personal knowledge compiler. It continuously compiles raw materials into a traceable personal wiki, then organizes selected and authorized parts into knowledge postcards, knowledge passports, and future scenario-specific visa bundles.
+This project is an AI-mountable personal knowledge base. It compiles raw materials into a traceable local knowledge system, then packages the right subset into postcards, passports, visas, and governed agent layers so any AI can understand the user quickly under authorization.
 
-The public repository currently implements a single-user Web system with this end-to-end loop:
+The canonical product flow is:
 
-`import -> incremental compile -> local Q&A -> formal output -> flowback -> postcards -> lightweight passport -> local backup`
+`import -> compile -> signals -> postcards -> passport -> mount`
+
+Writeback still remains candidate-only and user-reviewed.
 
 ## Project Status
 
 - Stage: public MVP / early open-source phase
-- Product direction: local-first, traceable sources, AI-maintained, user-governed
+- Product direction: local-first, traceable sources, AI-readable context, user-governed
 - Current scope: single user, local runtime, OpenAI-first provider, SQLite persistence
 
 ## What Exists Today
@@ -18,6 +20,7 @@ The public repository currently implements a single-user Web system with this en
 - Local object storage and SQLite data model
 - Hybrid retrieval with FTS5 + embeddings
 - Knowledge compilation, review queue, research Q&A, and output flowback
+- Workspace-scoped context with `Focus Cards`, `Capability Signals`, and `Mistake Patterns`
 - Postcard generation, passport snapshot generation, and backup zip exports
 - Visa bundle generation, managed secret-link sharing, machine-manifest downloads, and lightweight external flowback
 - Agent pack snapshots, avatar profiles, and governed internal-only simulation sessions
@@ -29,25 +32,37 @@ The public repository currently implements a single-user Web system with this en
 
 ## Current App Surfaces
 
-The current app shell includes:
+The current app shell is grouped into:
+
+Core:
 
 - `Dashboard`
 - `Inbox`
 - `Knowledge`
+- `Signals`
+- `Postcards`
+- `Passport`
 - `Review Queue`
 - `Research`
-- `Outputs`
-- `Postcards`
-- `Health Center`
-- `Visuals`
-- `Audit Log`
-- `Passport & Backup`
-- `Visas`
+
+Advanced:
+
+- `Mount Center`
 - `Avatars`
-- `Avatar Sessions`
 - `Exports`
 - `Policies`
+- `Grants`
+- `Audit Log`
+- `Health Center`
+- `Visuals`
 - `Fragments`
+- `Compilation Runs`
+
+Compatibility surfaces still present in the app:
+
+- `Review Queue`
+- `Outputs`
+- `Avatar Sessions`
 
 ## Architecture
 
@@ -62,6 +77,29 @@ Core stack:
 - SQLite + Drizzle ORM + FTS5
 - OpenAI provider abstraction
 - Local worker queue
+
+## Product Promise
+
+The product is no longer framed as a general future-total knowledge OS.
+
+The primary promise is:
+
+**help any AI understand the user’s foundation, current goal, and common blind spots quickly under authorization**
+
+The new first-layer objects are:
+
+- `Workspace`
+- `Capability Signal`
+- `Mistake Pattern`
+- `Focus Card`
+
+The advanced layers remain:
+
+- `Passport`
+- `Visa`
+- `Agent Pack`
+- `Avatar`
+- `Export Package`
 
 ## Quick Start
 
@@ -174,30 +212,34 @@ npm run build
 - editor defaults are defined in `.editorconfig`
 - Node version hint lives in `.nvmrc`
 
-## Roadmap
+## Current Product Shape
 
-The GitHub repository now contains:
+Core context:
 
-- a closed `MVP` milestone that tracks the first shipped product baseline
-- an open `V1` milestone for the next structural system layers
+- raw sources
+- accepted knowledge nodes
+- capability signals
+- mistake patterns
+- active focus cards
+- postcards
+- passport manifests
 
-The current V1 tracking issues focus on:
+Governed downstream layers:
 
-- fragment-first evidence modeling
-- explicit claim modeling
-- grant-based authorization records
-- compilation run history and diffs
+- visas for mount-time narrowing
+- agent packs for bounded AI behavior
+- avatars for governed replies and live internal sessions
+- export packages for cross-AI portability
 
-There is also an explicit maintenance issue for the remaining red dependency upgrades.
+## Near-Term Direction
 
-Next major directions include:
+The current priority is not adding more abstract layers. It is tightening the product around the AI-readable entry surface:
 
-- first-class fragment visibility and traceability
-- first-class claim objects
-- explicit authorization grants and policy records
-- durable compilation-run history
-- managed sharing analytics and feedback review
-- future scenario bundles and agent governance
+- sharper passport generation
+- better learner-state synthesis
+- clearer workspace boundaries
+- stronger mount-time narrowing
+- stable downstream governed AI behavior
 
 For the full product-system framing, see [docs/project-blueprint.md](./docs/project-blueprint.md).
 

@@ -14,7 +14,8 @@ export async function GET(request: Request) {
 
   const result = await searchKnowledge(getAppContext(), {
     q,
-    limit: Number(searchParams.get("limit") ?? "8")
+    limit: Number(searchParams.get("limit") ?? "8"),
+    workspaceId: searchParams.get("workspaceId") || undefined
   });
 
   return NextResponse.json(result);

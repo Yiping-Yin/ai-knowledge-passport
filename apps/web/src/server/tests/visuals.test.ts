@@ -18,6 +18,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
@@ -40,6 +41,7 @@ describe("visual overview", () => {
         id: "src_1",
         type: "markdown",
         title: "Source One",
+        workspaceId: "ws_personal",
         importedAt: new Date().toISOString(),
         filePath: null,
         privacyLevel: "L1_LOCAL_AI",
@@ -55,6 +57,7 @@ describe("visual overview", () => {
         id: "src_2",
         type: "markdown",
         title: "Source Two",
+        workspaceId: "ws_personal",
         importedAt: new Date().toISOString(),
         filePath: null,
         privacyLevel: "L3_PUBLIC",
@@ -73,6 +76,7 @@ describe("visual overview", () => {
         id: "node_1",
         nodeType: "theme",
         title: "Knowledge Mapping",
+        workspaceId: "ws_personal",
         summary: "Theme node",
         bodyMd: "Body",
         status: "accepted",
@@ -90,6 +94,7 @@ describe("visual overview", () => {
       id: "card_1",
       cardType: "knowledge",
       title: "Mapping Card",
+      workspaceId: "ws_personal",
       claim: "Claim",
       evidenceSummary: "Evidence",
       userView: "View",

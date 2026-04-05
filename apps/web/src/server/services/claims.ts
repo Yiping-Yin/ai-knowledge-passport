@@ -10,6 +10,7 @@ export async function createClaim(
     claimType: string;
     title: string;
     statement: string;
+    workspaceId?: string;
     status?: string;
     confidence?: number;
     sourceFragmentIds?: string[];
@@ -25,6 +26,7 @@ export async function createClaim(
     claimType: input.claimType,
     title: input.title,
     statement: input.statement,
+    workspaceId: input.workspaceId ?? "ws_personal",
     status: input.status ?? "candidate",
     confidence: input.confidence ?? 0,
     sourceFragmentIdsJson: JSON.stringify(input.sourceFragmentIds ?? []),

@@ -26,7 +26,7 @@ export default async function ExportsPage(props: {
   const latest = exports[0];
 
   return (
-    <PageShell currentPath="/exports" title="Exports" subtitle="Package governed agent packs into portable cross-AI zip bundles with stable manifests and checksums">
+    <PageShell currentPath="/exports" title="Exports" subtitle="Export governed agent packs as portable cross-AI bundles after the passport and mount layers are already in place">
       <section className="grid gap-4 md:grid-cols-4">
         <StatTile label="Export Packages" value={exports.length} />
         <StatTile label="Latest Export" value={latest?.title ?? "none"} hint={latest?.createdAt ?? "No export packages yet"} />
@@ -35,7 +35,7 @@ export default async function ExportsPage(props: {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <SectionCard title="Create Cross-AI Bundle" description="Export an agent pack as a versioned zip bundle with manifest, pack snapshot, evidence-level node/card data, and optional avatar profile context.">
+        <SectionCard title="Create Cross-AI Bundle" description="Export an agent pack as a versioned zip bundle with manifest, pack snapshot, node/card evidence, and optional avatar profile context.">
           <ExportPackageForm
             packs={packs.map((pack) => ({ id: pack.id, title: pack.title }))}
             avatars={avatars.map((avatar) => ({ id: avatar.id, title: avatar.title, activePackId: avatar.activePackId }))}

@@ -11,14 +11,57 @@ export default async function DashboardPage() {
   const stats = await getDashboardStats(getAppContext());
 
   return (
-    <PageShell currentPath="/dashboard" title="Dashboard" subtitle="Today’s knowledge growth and outward-facing projection overview">
-      <section className="grid gap-4 md:grid-cols-3">
+    <PageShell currentPath="/dashboard" title="Dashboard" subtitle="Track the core AI-readable context: imports, accepted knowledge, active focus, and what should be mounted next">
+      <section className="grid gap-4 md:grid-cols-4">
         <StatTile label="Imports Today" value={stats.importsToday} hint="Number of sources added today" />
         <StatTile label="Pending Compile" value={stats.pendingCompile} hint="Archived sources waiting for compilation" />
         <StatTile label="Pending Review" value={stats.pendingReview} hint="Compiled nodes waiting for user review" />
+        <StatTile label="Active Focus" value={stats.activeFocusCard?.title ?? "none"} hint={stats.activeFocusCard?.priority ?? "No active focus card"} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
+        <SectionCard title="Current User Context" description="This is the high-level layer an AI should understand before it reads deeper knowledge.">
+          <div className="space-y-4">
+            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Active Focus</p>
+              {stats.activeFocusCard ? (
+                <>
+                  <p className="mt-3 text-lg font-semibold">{stats.activeFocusCard.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{stats.activeFocusCard.goal}</p>
+                </>
+              ) : (
+                <p className="mt-3 text-sm text-[var(--muted)]">No active focus card yet. Use Signals to set what matters now.</p>
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Top Capability Signals</p>
+              <div className="mt-3 space-y-3">
+                {stats.topSignals.map((signal) => (
+                  <article key={signal.id}>
+                    <p className="text-sm font-medium">{signal.topic}</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">{signal.observedPractice}</p>
+                  </article>
+                ))}
+                {stats.topSignals.length === 0 ? <p className="text-sm text-[var(--muted)]">No accepted capability signals yet.</p> : null}
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">Mistake Patterns Pending Review</p>
+              <div className="mt-3 space-y-3">
+                {stats.pendingMistakes.map((mistake) => (
+                  <article key={mistake.id}>
+                    <p className="text-sm font-medium">{mistake.topic}</p>
+                    <p className="mt-1 text-sm text-[var(--muted)]">{mistake.description}</p>
+                  </article>
+                ))}
+                {stats.pendingMistakes.length === 0 ? <p className="text-sm text-[var(--muted)]">No mistake patterns are waiting for review.</p> : null}
+              </div>
+            </div>
+          </div>
+        </SectionCard>
+
         <SectionCard title="Recent Research Output" description="Review recent research sessions and formal outputs here.">
           <div className="space-y-4">
             {stats.recentResearch.length === 0 ? <p className="text-sm text-[var(--muted)]">There are no research sessions yet.</p> : null}

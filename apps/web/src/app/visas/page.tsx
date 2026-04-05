@@ -31,7 +31,7 @@ export default async function VisasPage() {
   };
 
   return (
-    <PageShell currentPath="/visas" title="Visas" subtitle="Manage scenario bundles as a live sharing product with policies, access state, and lightweight flowback">
+    <PageShell currentPath="/visas" title="Mount Center" subtitle="Start from a passport, then narrow what an external AI can read through managed visa bundles">
       <section className="grid gap-4 md:grid-cols-4">
         <StatTile label="Total Visas" value={summary.total} />
         <StatTile label="Active Visas" value={summary.active} />
@@ -42,7 +42,7 @@ export default async function VisasPage() {
       <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
         <SectionCard
           title="Create Visa Bundle"
-          description="Create a managed read-only scenario bundle with expiry, usage limits, redaction rules, and machine-download policy."
+          description="Begin with the passport context, then narrow nodes, postcards, access limits, and machine-download policy for one specific mount."
         >
           <VisaForm
             passports={passports.map((passport) => ({
@@ -52,7 +52,7 @@ export default async function VisasPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Issued Visas" description="Track current share state, access activity, and pending external flowback.">
+        <SectionCard title="Issued Visas" description="Track current mount state, access activity, and pending external flowback.">
           <div className="space-y-4">
             {visas.map((visa) => (
               <article key={visa.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4">

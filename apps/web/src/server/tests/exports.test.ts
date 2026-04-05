@@ -28,6 +28,7 @@ class StubProvider implements ModelProvider {
   async generateAnswer() { return { answerMd: "", citations: [] }; }
   async generateCard() { return { claim: "", evidenceSummary: "", userView: "" }; }
   async generatePassport() { return { humanMarkdown: "", machineManifest: {} }; }
+  async generateLearnerState() { return { capabilitySignals: [], mistakePatterns: [] }; }
   async generateAvatarReply() { return { answerMd: "", citations: [] }; }
 }
 
@@ -54,6 +55,7 @@ async function seedExportFixtures(context: ReturnType<typeof createAppContext>) 
     id: nodeId,
     nodeType: "summary",
     title: "Agent Pack Node",
+    workspaceId: "ws_personal",
     summary: "Node summary",
     bodyMd: "Node body markdown",
     status: "accepted",
@@ -70,6 +72,7 @@ async function seedExportFixtures(context: ReturnType<typeof createAppContext>) 
     id: cardId,
     cardType: "knowledge",
     title: "Agent Pack Card",
+    workspaceId: "ws_personal",
     claim: "Cards capture shareable knowledge claims.",
     evidenceSummary: "Backed by accepted nodes.",
     userView: "A compact governed expression layer.",
@@ -195,6 +198,7 @@ describe("export packages", () => {
         id: extraNodeId,
         nodeType: "summary",
         title: "Second Node",
+        workspaceId: "ws_personal",
         summary: "Second summary",
         bodyMd: "Second body",
         status: "accepted",

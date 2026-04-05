@@ -12,6 +12,7 @@ import { syncSourceFragmentFts } from "./fts";
 import { enqueueJob, maybeRunInlineJobs } from "./jobs";
 import { normalizeSourceContent } from "./parsers";
 import { storeBufferAsset, storeTextAsset } from "./storage";
+import { getWorkspace } from "./workspaces";
 
 type ImportSourceOptions = {
   payload: ImportPayload;
@@ -19,6 +20,7 @@ type ImportSourceOptions = {
 };
 
 export async function createSourceImport(context: AppContext, options: ImportSourceOptions) {
+  const workspace = await getWorkspace(context, options.payload.workspaceId);
   const sourceId = createId("src");
   const importedAt = nowIso();
   let filePath: string | undefined;
@@ -79,6 +81,7 @@ export async function createSourceImport(context: AppContext, options: ImportSou
     type: options.payload.type,
     title: options.payload.title,
     originUrl: options.payload.originUrl ?? null,
+    workspaceId: workspace.id,
     createdAt: options.payload.createdAt ?? null,
     importedAt,
     filePath: filePath ?? null,
