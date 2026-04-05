@@ -177,6 +177,7 @@ describe("visa bundles", () => {
     expect(grants[0]?.objectType).toBe("visa_bundle");
     expect(grants[0]?.objectId).toBe(created.visaId);
     expect(grants[0]?.granteeType).toBe("secret_link");
+    expect(grants[0]?.accessLevel).toBe("topic_read");
     expect(grants[0]?.status).toBe("active");
   });
 

@@ -776,7 +776,7 @@ export async function createVisaBundle(context: AppContext, input: VisaBundleCre
     objectType: "visa_bundle",
     objectId: visaId,
     granteeType: "secret_link",
-    accessLevel: "read_only",
+    accessLevel: "topic_read",
     expiresAt: input.expiresAt,
     redactionRules: input.redaction,
     notes: input.audienceLabel

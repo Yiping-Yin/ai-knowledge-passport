@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 
+import { grantAccessLevels } from "@ai-knowledge-passport/shared";
+
 export function GrantForm() {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -62,8 +64,14 @@ export function GrantForm() {
           <input name="granteeId" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" />
         </label>
         <label className="space-y-2 text-sm">
-          <span>Access Level</span>
-          <input name="accessLevel" required className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3" placeholder="read_only" />
+          <span>Access Scope</span>
+          <select name="accessLevel" defaultValue="passport_read" className="w-full rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
+            {grantAccessLevels.map((accessLevel) => (
+              <option key={accessLevel} value={accessLevel}>
+                {accessLevel}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="space-y-2 text-sm">
           <span>Expires At</span>

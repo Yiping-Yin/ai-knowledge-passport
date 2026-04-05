@@ -1,10 +1,5 @@
 # PLANS.md
 
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
 This file defines how execution plans work in this repository.
 
 A plan is a **living, self-contained implementation document** that a coding agent can follow from repo discovery to validated delivery. The canonical project plan is `plans/mvp_execplan.md`.
@@ -136,42 +131,3 @@ Keep plan updates concise but specific:
 - why it changed
 - what is complete
 - what remains blocked
-=======
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-This file defines plan requirements for this repository.
-
-## Plan requirements
-
-Every execution plan should:
-
-1. Start from observed repository state (no `TODO` / `UNKNOWN` placeholders for discoverable facts).
-2. Separate docs/process changes from runtime/API/schema changes.
-3. Include a verification section centered on `npm run verify`.
-4. Track status explicitly (`not started`, `in progress`, `blocked`, `done`).
-5. Link to concrete files and commands so another contributor can execute the plan without guesswork.
-
-## Plan lifecycle
-
-- Draft or update plans in `plans/`.
-- Keep one canonical active MVP plan at `plans/mvp_execplan.md`.
-- When reality changes (stack, paths, commands, CI), update the plan in the same PR if practical.
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
