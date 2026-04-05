@@ -237,6 +237,26 @@ export const avatarSimulationSessions = sqliteTable("avatar_simulation_sessions"
   createdAt: text("created_at").notNull()
 });
 
+export const avatarLiveSessions = sqliteTable("avatar_live_sessions", {
+  id: text("id").primaryKey(),
+  avatarProfileId: text("avatar_profile_id").notNull().references(() => avatarProfiles.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  status: text("status").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+});
+
+export const avatarLiveMessages = sqliteTable("avatar_live_messages", {
+  id: text("id").primaryKey(),
+  sessionId: text("session_id").notNull().references(() => avatarLiveSessions.id, { onDelete: "cascade" }),
+  role: text("role").notNull(),
+  contentMd: text("content_md").notNull(),
+  resultStatus: text("result_status"),
+  citationsJson: text("citations_json").notNull().default("[]"),
+  reason: text("reason").notNull().default(""),
+  createdAt: text("created_at").notNull()
+});
+
 export const exportPackages = sqliteTable("export_packages", {
   id: text("id").primaryKey(),
   objectType: text("object_type").notNull(),

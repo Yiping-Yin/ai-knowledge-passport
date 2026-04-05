@@ -123,6 +123,16 @@ export const avatarSimulationStatuses = [
   "escalated"
 ] as const;
 
+export const avatarLiveSessionStatuses = [
+  "active",
+  "closed"
+] as const;
+
+export const avatarLiveMessageRoles = [
+  "user",
+  "assistant"
+] as const;
+
 export const exportPackageStatuses = [
   "succeeded",
   "failed"
@@ -154,6 +164,8 @@ export const visaFeedbackTypeSchema = z.enum(visaFeedbackTypes);
 export const visaFeedbackStatusSchema = z.enum(visaFeedbackStatuses);
 export const avatarStatusSchema = z.enum(avatarStatuses);
 export const avatarSimulationStatusSchema = z.enum(avatarSimulationStatuses);
+export const avatarLiveSessionStatusSchema = z.enum(avatarLiveSessionStatuses);
+export const avatarLiveMessageRoleSchema = z.enum(avatarLiveMessageRoles);
 export const exportPackageStatusSchema = z.enum(exportPackageStatuses);
 export const objectPolicyObjectTypeSchema = z.enum(objectPolicyObjectTypes);
 
@@ -290,6 +302,18 @@ export const avatarStatusUpdateSchema = z.object({
   status: avatarStatusSchema
 });
 
+export const avatarLiveSessionCreateSchema = z.object({
+  title: z.string().default("")
+});
+
+export const avatarLiveMessageCreateSchema = z.object({
+  contentMd: z.string().min(1)
+});
+
+export const avatarLiveSessionStatusUpdateSchema = z.object({
+  status: avatarLiveSessionStatusSchema
+});
+
 export const agentPackExportCreateSchema = z.object({
   agentPackId: z.string().min(1),
   avatarProfileId: z.string().optional(),
@@ -335,6 +359,8 @@ export type VisaFeedbackType = z.infer<typeof visaFeedbackTypeSchema>;
 export type VisaFeedbackStatus = z.infer<typeof visaFeedbackStatusSchema>;
 export type AvatarStatus = z.infer<typeof avatarStatusSchema>;
 export type AvatarSimulationStatus = z.infer<typeof avatarSimulationStatusSchema>;
+export type AvatarLiveSessionStatus = z.infer<typeof avatarLiveSessionStatusSchema>;
+export type AvatarLiveMessageRole = z.infer<typeof avatarLiveMessageRoleSchema>;
 export type ExportPackageStatus = z.infer<typeof exportPackageStatusSchema>;
 export type ObjectPolicyObjectType = z.infer<typeof objectPolicyObjectTypeSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
@@ -351,6 +377,8 @@ export type AvatarEscalationRules = z.infer<typeof avatarEscalationRulesSchema>;
 export type AvatarProfileCreateInput = z.infer<typeof avatarProfileCreateSchema>;
 export type AvatarProfileUpdateInput = z.infer<typeof avatarProfileUpdateSchema>;
 export type AvatarSimulationInput = z.infer<typeof avatarSimulationInputSchema>;
+export type AvatarLiveSessionCreateInput = z.infer<typeof avatarLiveSessionCreateSchema>;
+export type AvatarLiveMessageCreateInput = z.infer<typeof avatarLiveMessageCreateSchema>;
 export type AgentPackExportCreateInput = z.infer<typeof agentPackExportCreateSchema>;
 export type ObjectPolicyUpsertInput = z.infer<typeof objectPolicyUpsertSchema>;
 export type BackupCreateInput = z.infer<typeof backupCreateSchema>;
@@ -456,6 +484,30 @@ export type AvatarSimulationSession = {
   citations: AvatarSimulationCitation[];
   reason: string;
   createdAt: string;
+};
+
+export type AvatarLiveMessage = {
+  id: string;
+  sessionId: string;
+  role: AvatarLiveMessageRole;
+  contentMd: string;
+  resultStatus: AvatarSimulationStatus | null;
+  citations: AvatarSimulationCitation[];
+  reason: string;
+  createdAt: string;
+};
+
+export type AvatarLiveSessionSummary = {
+  id: string;
+  avatarProfileId: string;
+  title: string;
+  status: AvatarLiveSessionStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AvatarLiveSessionSnapshot = AvatarLiveSessionSummary & {
+  messages: AvatarLiveMessage[];
 };
 
 export type ExportPackageSummary = {
