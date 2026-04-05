@@ -88,16 +88,20 @@ This file is updated as the repository is explored and changed.
 - status: completed in the control-doc alignment PR
 
 ### M1
-- status: not started
+- status: in progress
+- note: baseline schema and persistence already exist; remaining work is consistency tightening around MVP terminology, traceability, and permissions.
 
 ### M2
-- status: not started
+- status: in progress
+- note: compile, learner-state, and passport generation flows already exist; remaining work is fixture/release discipline and sharper MVP framing.
 
 ### M3
-- status: not started
+- status: in progress
+- note: visa, grant, audit, and governed delivery paths exist; remaining work is enforcing the narrowed MVP scope model across docs and UI.
 
 ### M4
-- status: not started
+- status: in progress
+- note: a usable operator UI exists today; remaining work is reducing top-level concept sprawl and emphasizing the Passport-first flow.
 
 ### M5
 - status: blocked pending evaluator + fixtures
@@ -107,3 +111,4 @@ This file is updated as the repository is explored and changed.
 - No dedicated formatter or lint command exists yet, so plans and PRs should not claim those validations until they are added.
 - No fixed evaluator or checked-in compile fixture harness exists yet, so bounded research-loop work remains blocked.
 - The current app already exposes more internal surfaces than the narrowed P0 framing, so future milestones need to tighten presentation without destabilizing existing functionality.
+- The local dirty workspace used during previous GitHub/API-assisted merges is not a trustworthy baseline; continued release work should start from a clean clone or worktree.
