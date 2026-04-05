@@ -40,16 +40,40 @@ describe("grant service", () => {
       objectId: "passport_1",
       granteeType: "collaborator",
       granteeId: "alice@example.com",
-      accessLevel: "read_only",
+      accessLevel: "passport_read",
       notes: "limited partner access"
     });
 
     let grants = await listGrants(context, 20);
     expect(grants[0]?.id).toBe(grantId);
     expect(grants[0]?.status).toBe("active");
+    expect(grants[0]?.accessLevel).toBe("passport_read");
 
     await revokeGrant(context, grantId);
     grants = await listGrants(context, 20);
     expect(grants[0]?.status).toBe("revoked");
+  });
+
+  it("rejects non-canonical access scopes", async () => {
+    const tempRoot = await fs.mkdtemp(path.join(os.tmpdir(), "akp-grants-invalid-"));
+    const dataDir = path.join(tempRoot, "data");
+    await fs.mkdir(path.join(dataDir, "objects"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "exports"), { recursive: true });
+    await fs.mkdir(path.join(dataDir, "backups"), { recursive: true });
+
+    const context = createAppContext({
+      dataDir,
+      databasePath: path.join(dataDir, "test.sqlite"),
+      provider: new StubProvider()
+    });
+
+    await expect(
+      createGrant(context, {
+        objectType: "visa_bundle",
+        objectId: "visa_1",
+        granteeType: "secret_link",
+        accessLevel: "read_only" as never
+      })
+    ).rejects.toThrow();
   });
 });

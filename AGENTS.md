@@ -1,10 +1,5 @@
 # AGENTS.md
 
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
 ## Mission
 
 Build the MVP of **AI知识护照盘 / AI Passport**: a compiled, local-first, AI-mountable personal knowledge system that helps outside AI understand a person faster and more accurately through a **Passport manifest**, a **Focus Card**, and a small number of representative **Topic Cards**, rather than forcing the model to rediscover context from raw notes every time.
@@ -242,54 +237,3 @@ A milestone is done only when all of the following are true:
 - risks and assumptions are recorded
 - no speculative adjacent feature was added
 - the diff passes a trust-boundary review
-=======
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-This repository's canonical mission is to build a local-first, traceable AI personal knowledge passport system.
-
-## Working contract
-
-- Prefer small, reviewable PRs on `codex/*` branches.
-- Keep runtime behavior stable unless the change explicitly targets runtime behavior.
-- Use `npm run verify` as the baseline local verification step before PR.
-- Preserve source traceability and user-governed boundaries in product and docs changes.
-
-## Canonical guidance order
-
-When guidance conflicts, use this order:
-
-1. `AGENTS.md` (repo mission and agent workflow contract)
-2. `PLANS.md` (plan quality and execution requirements)
-3. `plans/mvp_execplan.md` (current execution baseline)
-4. Context/background docs such as `docs/project-blueprint.md`
-
-## Documentation expectations
-
-- Keep implementation-facing docs under `docs/spec`.
-- Keep research process and findings under `docs/research`.
-- Keep review standards and checklists under `docs/review`.
-- Keep codex/automation workflow docs under `docs/codex`.
-
-## Verification
-
-- Required verification block for PRs: `npm run verify`
-- CI mirror: `.github/workflows/ci.yml` runs `npm run ci:verify`.
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
-<<<<<<< ours
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs

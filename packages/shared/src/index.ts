@@ -161,6 +161,12 @@ export const focusCardStatuses = [
   "archived"
 ] as const;
 
+export const grantAccessLevels = [
+  "passport_read",
+  "topic_read",
+  "writeback_candidate"
+] as const;
+
 export const objectPolicyObjectTypes = [
   "passport_snapshot",
   "visa_bundle",
@@ -194,6 +200,7 @@ export const exportPackageStatusSchema = z.enum(exportPackageStatuses);
 export const capabilitySignalStatusSchema = z.enum(capabilitySignalStatuses);
 export const mistakePatternStatusSchema = z.enum(mistakePatternStatuses);
 export const focusCardStatusSchema = z.enum(focusCardStatuses);
+export const grantAccessLevelSchema = z.enum(grantAccessLevels);
 export const objectPolicyObjectTypeSchema = z.enum(objectPolicyObjectTypes);
 
 export const workspaceCreateSchema = z.object({
@@ -327,6 +334,17 @@ export const visaFeedbackReviewSchema = z.object({
   status: visaFeedbackStatusSchema
 });
 
+export const grantCreateSchema = z.object({
+  objectType: z.string().min(1),
+  objectId: z.string().min(1),
+  granteeType: z.string().min(1),
+  granteeId: z.string().min(1).optional(),
+  accessLevel: grantAccessLevelSchema,
+  expiresAt: z.string().datetime().optional(),
+  redactionRules: z.record(z.string(), z.unknown()).default({}),
+  notes: z.string().default("")
+});
+
 export const agentPackCreateSchema = z.object({
   title: z.string().min(1),
   passportId: z.string().optional(),
@@ -436,6 +454,7 @@ export type ExportPackageStatus = z.infer<typeof exportPackageStatusSchema>;
 export type CapabilitySignalStatus = z.infer<typeof capabilitySignalStatusSchema>;
 export type MistakePatternStatus = z.infer<typeof mistakePatternStatusSchema>;
 export type FocusCardStatus = z.infer<typeof focusCardStatusSchema>;
+export type GrantAccessLevel = z.infer<typeof grantAccessLevelSchema>;
 export type ObjectPolicyObjectType = z.infer<typeof objectPolicyObjectTypeSchema>;
 export type WorkspaceCreateInput = z.infer<typeof workspaceCreateSchema>;
 export type ImportPayload = z.infer<typeof importPayloadSchema>;
@@ -450,6 +469,7 @@ export type VisaRedactionConfig = z.infer<typeof visaRedactionSchema>;
 export type VisaBundleCreateInput = z.infer<typeof visaBundleCreateSchema>;
 export type VisaFeedbackCreateInput = z.infer<typeof visaFeedbackCreateSchema>;
 export type VisaFeedbackReviewInput = z.infer<typeof visaFeedbackReviewSchema>;
+export type GrantCreateInput = z.input<typeof grantCreateSchema>;
 export type AgentPackCreateInput = z.infer<typeof agentPackCreateSchema>;
 export type AvatarEscalationRules = z.infer<typeof avatarEscalationRulesSchema>;
 export type AvatarProfileCreateInput = z.infer<typeof avatarProfileCreateSchema>;
