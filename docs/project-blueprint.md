@@ -189,3 +189,13 @@ The repo already contains deep advanced layers. The present priority is product 
 4. Make passport the canonical AI entry surface
 
 If those layers mature, the system stops reading like a broad future-total platform and starts behaving like a concrete AI-readable personal knowledge base.
+
+## Canonical Implementation Guidance
+
+This blueprint is product/background context. For canonical implementation and execution guidance, use:
+
+- [`AGENTS.md`](../AGENTS.md)
+- [`PLANS.md`](../PLANS.md)
+- [`plans/mvp_execplan.md`](../plans/mvp_execplan.md)
+- [`docs/spec/Documentation.md`](./spec/Documentation.md)
+
