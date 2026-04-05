@@ -259,6 +259,26 @@ export function initializeDatabaseForSqlite(sqlite: ReturnType<typeof getDatabas
       created_at text not null
     );
 
+    create table if not exists avatar_live_sessions (
+      id text primary key,
+      avatar_profile_id text not null references avatar_profiles(id) on delete cascade,
+      title text not null,
+      status text not null,
+      created_at text not null,
+      updated_at text not null
+    );
+
+    create table if not exists avatar_live_messages (
+      id text primary key,
+      session_id text not null references avatar_live_sessions(id) on delete cascade,
+      role text not null,
+      content_md text not null,
+      result_status text,
+      citations_json text not null default '[]',
+      reason text not null default '',
+      created_at text not null
+    );
+
     create table if not exists export_packages (
       id text primary key,
       object_type text not null,

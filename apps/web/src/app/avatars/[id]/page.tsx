@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 
+import { AvatarLiveSessionForm } from "@/components/avatar-live-session-form";
 import { AvatarProfileEditor } from "@/components/avatar-profile-editor";
 import { AvatarSimulationForm } from "@/components/avatar-simulation-form";
 import { AvatarStatusToggle } from "@/components/avatar-status-toggle";
@@ -9,15 +10,17 @@ import { PageShell } from "@/components/page-shell";
 import { SectionCard, StatTile, StatusBadge } from "@/components/ui";
 import { getAppContext } from "@/server/context";
 import { getAgentPackSnapshot, listAgentPacks } from "@/server/services/agent-packs";
+import { listAvatarLiveSessions } from "@/server/services/avatar-live-sessions";
 import { getAvatarProfile, listAvatarSimulationSessions } from "@/server/services/avatars";
 
 export default async function AvatarDetailPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const context = getAppContext();
-  const [avatar, packs, sessions] = await Promise.all([
+  const [avatar, packs, sessions, liveSessions] = await Promise.all([
     getAvatarProfile(context, params.id),
     listAgentPacks(context, 80),
-    listAvatarSimulationSessions(context, params.id, 40)
+    listAvatarSimulationSessions(context, params.id, 40),
+    listAvatarLiveSessions(context, params.id, 40)
   ]);
 
   if (!avatar) {
@@ -136,6 +139,34 @@ export default async function AvatarDetailPage(props: { params: Promise<{ id: st
           <AvatarSimulationForm avatarId={avatar.id} />
         </SectionCard>
       </div>
+
+      <SectionCard title="Live Sessions" description="Open and inspect internal multi-turn governed threads. Live sessions stay inside the current avatar boundary.">
+        <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+          <div className="space-y-4">
+            <AvatarLiveSessionForm avatarId={avatar.id} />
+          </div>
+          <div className="space-y-4">
+            {liveSessions.map((session) => (
+              <article key={session.id} className="rounded-3xl border border-[var(--line)] bg-white/80 p-4 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-medium">{session.title}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-[var(--muted)]">{session.id}</p>
+                  </div>
+                  <StatusBadge>{session.status}</StatusBadge>
+                </div>
+                <p className="mt-3 text-[var(--muted)]">Created {session.createdAt}</p>
+                <div className="mt-4">
+                  <Link href={`/avatar-sessions/${session.id}`} className="rounded-full border border-[var(--line)] px-4 py-2 text-sm">
+                    Open Session
+                  </Link>
+                </div>
+              </article>
+            ))}
+            {liveSessions.length === 0 ? <p className="text-sm text-[var(--muted)]">No live sessions exist for this avatar yet.</p> : null}
+          </div>
+        </div>
+      </SectionCard>
 
       <SectionCard title="Recent Simulation Sessions" description="Every simulation is logged independently with answer, refusal, or escalation status and scoped citations.">
         <div className="space-y-4">

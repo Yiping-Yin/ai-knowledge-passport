@@ -23,6 +23,7 @@ The public repository currently implements a single-user Web system with this en
 - Agent pack snapshots, avatar profiles, and governed internal-only simulation sessions
 - Cross-AI zip bundle exports for agent packs with manifests, counts, and checksum tracking
 - Unified object-level policies across passports, visas, agent packs, avatars, and exports
+- Internal live governed avatar sessions with multi-turn threads and scoped citations
 - Fragment inspection, health diagnostics, audit history, and visual knowledge summaries
 - Next.js Web UI and a local worker
 
@@ -43,6 +44,7 @@ The current app shell includes:
 - `Passport & Backup`
 - `Visas`
 - `Avatars`
+- `Avatar Sessions`
 - `Exports`
 - `Policies`
 - `Fragments`
