@@ -273,12 +273,23 @@ The current priority is not adding more abstract layers. It is tightening the pr
 
 For the full product-system framing, see [docs/project-blueprint.md](./docs/project-blueprint.md).
 
+## Contributor Control Docs
+
+For canonical contributor workflow and planning guidance, start here:
+
+- [AGENTS.md](./AGENTS.md)
+- [PLANS.md](./PLANS.md)
+- [plans/mvp_execplan.md](./plans/mvp_execplan.md)
+
 ## Contributing
 
 Contributions of code, documentation, tests, fixtures, and design ideas are welcome.
 
 Before contributing, please read:
 
+- [AGENTS.md](./AGENTS.md)
+- [PLANS.md](./PLANS.md)
+- [plans/mvp_execplan.md](./plans/mvp_execplan.md)
 - [CONTRIBUTING.md](./CONTRIBUTING.md)
 - [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)
 - [SECURITY.md](./SECURITY.md)

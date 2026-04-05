@@ -1,5 +1,7 @@
 # Project Blueprint
 
+> Canonical implementation controls now live in `AGENTS.md`, `PLANS.md`, and `plans/mvp_execplan.md`. Treat this file as background product framing, not the primary execution guide.
+
 ## One-line Definition
 
 AI Personal Knowledge Passport System is an AI-mountable personal knowledge base: a local-first system for knowledge compilation, authorized projection, and governed AI use.
@@ -189,3 +191,13 @@ The repo already contains deep advanced layers. The present priority is product 
 4. Make passport the canonical AI entry surface
 
 If those layers mature, the system stops reading like a broad future-total platform and starts behaving like a concrete AI-readable personal knowledge base.
+
+## Canonical Implementation Guidance
+
+This blueprint is product/background context. For canonical implementation and execution guidance, use:
+
+- [`AGENTS.md`](../AGENTS.md)
+- [`PLANS.md`](../PLANS.md)
+- [`plans/mvp_execplan.md`](../plans/mvp_execplan.md)
+- [`docs/spec/Documentation.md`](./spec/Documentation.md)
+
