@@ -130,14 +130,14 @@ export default async function VisaDetailPage(props: { params: Promise<{ id: stri
           </div>
         </SectionCard>
 
-        <SectionCard title="Bundle Contents" description="The currently included node and postcard counts for this visa snapshot.">
+        <SectionCard title="Bundle Contents" description="The currently included node and topic-card counts for this visa snapshot.">
           <div className="space-y-4 text-sm">
             <div className="rounded-2xl border border-[var(--line)] bg-white/80 p-4">
               <p className="font-medium">Nodes</p>
               <p className="mt-2 text-[var(--muted)]">{visa.includeNodeIds.length}</p>
             </div>
             <div className="rounded-2xl border border-[var(--line)] bg-white/80 p-4">
-              <p className="font-medium">Postcards</p>
+              <p className="font-medium">Topic Cards</p>
               <p className="mt-2 text-[var(--muted)]">{visa.includePostcardIds.length}</p>
             </div>
             <div className="rounded-2xl border border-[var(--line)] bg-white/80 p-4">

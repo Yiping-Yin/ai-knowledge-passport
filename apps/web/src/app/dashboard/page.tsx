@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { formatDistanceToNow } from "date-fns";
+import Link from "next/link";
 
 import { PageShell } from "@/components/page-shell";
 import { SectionCard, StatTile, StatusBadge } from "@/components/ui";
@@ -18,6 +19,20 @@ export default async function DashboardPage() {
         <StatTile label="Pending Review" value={stats.pendingReview} hint="Compiled nodes waiting for user review" />
         <StatTile label="Active Focus" value={stats.activeFocusCard?.title ?? "none"} hint={stats.activeFocusCard?.priority ?? "No active focus card"} />
       </section>
+
+      <SectionCard title="Primary Operator Path" description="For the MVP release candidate, keep the top-level workflow narrow: prepare context, publish a passport, mount it, and review what comes back.">
+        <div className="flex flex-wrap gap-3">
+          <Link href="/passport" className="rounded-full bg-[var(--accent)] px-5 py-3 text-sm font-medium text-white">
+            Open Passport
+          </Link>
+          <Link href="/visas" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm">
+            Open Mount Center
+          </Link>
+          <Link href="/review" className="rounded-full border border-[var(--line)] px-5 py-3 text-sm">
+            Open Review Queue
+          </Link>
+        </div>
+      </SectionCard>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <SectionCard title="Current User Context" description="This is the high-level layer an AI should understand before it reads deeper knowledge.">

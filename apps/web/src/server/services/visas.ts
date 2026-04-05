@@ -220,7 +220,7 @@ function renderVisaHumanMarkdown(input: {
     `# ${input.title}`,
     "",
     `Audience: ${input.audienceLabel}`,
-    "Access: Read-only secret link",
+    "Access: Scoped secret link",
     `Expiry: ${input.expiresAt ?? "No expiry"}`,
     `Origin: ${input.passportTitle ? `Passport snapshot · ${input.passportTitle}` : "Direct visa selection"}`
   ];
@@ -261,7 +261,7 @@ function renderVisaHumanMarkdown(input: {
   }
 
   if (input.cards.length) {
-    lines.push("", "## Postcards");
+    lines.push("", "## Topic Cards");
     for (const card of input.cards) {
       const sourceCount = Array.from(new Set(card.relatedSourceIds)).filter((id) => input.sourceMap.has(id)).length;
       lines.push(
